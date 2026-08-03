@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+
+# Build outputs
+dist/
+backend/dist/
+build/
+*.tsbuildinfo
+
+# Environment variables
+.env
+backend/.env
+.env.local
+.env.*.local
+
+# Logs and temp files
+logs/
+*.log
+*-debug.log*
+.cache/
+.vite/
+.tmp-*
+vite.config.*.timestamp-*
+
+# System & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Database temporary binaries and data
+*.zip
+pg16/
+pg16data/
+pgdata16/
+pgdata/
+uploads/*
+!uploads/.gitkeep

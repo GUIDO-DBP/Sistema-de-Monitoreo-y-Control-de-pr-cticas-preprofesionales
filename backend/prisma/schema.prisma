@@ -1,0 +1,336 @@
+// ─────────────────────────────────────────────────────────
+//  SMCPP — Prisma Schema
+//  Adaptador: postgresql
+//  Generador:  prisma-client-js
+// ─────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enumeraciones ───────────────────────────────────────
+
+enum Rol {
+  ADMINISTRADOR
+  COORDINADOR
+  ESTUDIANTE
+  TUTOR
+}
+
+enum EstadoConvenio {
+  ACTIVO
+  POR_VENCER
+  VENCIDO
+  SUSPENDIDO
+}
+
+enum EstadoPostulacion {
+  PENDIENTE
+  EN_REVISION
+  OBSERVADA
+  APROBADA
+  RECHAZADA
+}
+
+enum EstadoDocumento {
+  PENDIENTE
+  APROBADO
+  OBSERVADO
+}
+
+enum EstadoHoras {
+  PENDIENTE
+  APROBADA
+  OBSERVADA
+}
+
+enum EstadoEvaluacion {
+  PENDIENTE
+  EN_PROCESO
+  COMPLETADA
+  VENCIDA
+}
+
+enum CategoriaNotificacion {
+  POSTULACIONES
+  DOCUMENTOS
+  HORAS
+  EVALUACIONES
+  SISTEMA
+}
+
+enum Prioridad {
+  ALTA
+  MEDIA
+  BAJA
+}
+
+// ─── Modelos ─────────────────────────────────────────────
+
+/// Cuenta de acceso al sistema
+model Usuario {
+  id           String   @id @default(cuid())
+  nombre       String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  rol          Rol      @default(ESTUDIANTE)
+  activo       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  estudiante              Estudiante?
+  tutorEmpresarial        TutorEmpresarial?
+  notificaciones          Notificacion[]
+  auditorias              Auditoria[]
+  postulacionesAsignadas  Postulacion[] @relation("ResponsablePostulacion")
+
+  @@map("usuarios")
+}
+
+/// Perfil adicional de un estudiante
+model Estudiante {
+  id        String  @id @default(cuid())
+  usuarioId String  @unique @map("usuario_id")
+  codigo    String  @unique
+  escuela   String
+  ciclo     Int     @default(1)
+  telefono  String?
+  iniciales String  @default("")
+  color     String  @default("#2563EB")
+
+  usuario        Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  postulaciones  Postulacion[]
+  documentos     Documento[]
+  registrosHoras RegistroHora[]
+  evaluaciones   Evaluacion[]
+
+  @@map("estudiantes")
+}
+
+/// Tutor de la empresa receptora
+model TutorEmpresarial {
+  id        String  @id @default(cuid())
+  usuarioId String  @unique @map("usuario_id")
+  empresaId String  @map("empresa_id")
+  cargo     String?
+
+  usuario        Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  empresa        Empresa      @relation(fields: [empresaId], references: [id])
+  postulaciones  Postulacion[] @relation("TutorPostulacion")
+  registrosHoras RegistroHora[]
+  evaluaciones   Evaluacion[]
+
+  @@map("tutores_empresariales")
+}
+
+/// Empresa receptora de prácticas
+model Empresa {
+  id        String   @id @default(cuid())
+  nombre    String
+  rubro     String
+  ubicacion String
+  modalidad String   @default("Presencial")
+  vacantes  Int      @default(0)
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  convenios  Convenio[]
+  tutores    TutorEmpresarial[]
+  postulaciones Postulacion[]
+
+  @@map("empresas")
+}
+
+/// Convenio institucional con una empresa
+model Convenio {
+  id                String         @id @default(cuid())
+  codigo            String         @unique
+  empresaId         String         @map("empresa_id")
+  rubro             String
+  inicio            DateTime
+  vencimiento       DateTime
+  vacantes          Int            @default(0)
+  estudiantesActivos Int           @default(0) @map("estudiantes_activos")
+  estado            EstadoConvenio @default(ACTIVO)
+  activo            Boolean        @default(true)
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+
+  empresa       Empresa       @relation(fields: [empresaId], references: [id])
+  postulaciones Postulacion[]
+
+  @@map("convenios")
+}
+
+/// Solicitud de prácticas de un estudiante
+model Postulacion {
+  id             String            @id @default(cuid())
+  codigo         String            @unique
+  estudianteId   String            @map("estudiante_id")
+  empresaId      String            @map("empresa_id")
+  convenioId     String?           @map("convenio_id")
+  responsableId  String?           @map("responsable_id")
+  tutorId        String?           @map("tutor_id")
+  fechaEnvio     DateTime          @default(now()) @map("fecha_envio")
+  area           String
+  modalidad      String
+  fechaInicio    DateTime?         @map("fecha_inicio")
+  fechaFin       DateTime?         @map("fecha_fin")
+  horasSemanales Int               @default(30) @map("horas_semanales")
+  motivacion     String?
+  descripcion    String?
+  etapa          Int               @default(1)
+  estado         EstadoPostulacion @default(PENDIENTE)
+  observaciones  String?
+  activo         Boolean           @default(true)
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+
+  estudiante     Estudiante        @relation(fields: [estudianteId], references: [id])
+  empresa        Empresa           @relation(fields: [empresaId], references: [id])
+  convenio       Convenio?         @relation(fields: [convenioId], references: [id])
+  responsable    Usuario?          @relation("ResponsablePostulacion", fields: [responsableId], references: [id])
+  tutor          TutorEmpresarial? @relation("TutorPostulacion", fields: [tutorId], references: [id])
+  documentos     Documento[]
+  registrosHoras RegistroHora[]
+  evaluaciones   Evaluacion[]
+
+  @@map("postulaciones")
+}
+
+/// Archivo adjunto de una postulación
+model Documento {
+  id            String          @id @default(cuid())
+  postulacionId String          @map("postulacion_id")
+  estudianteId  String          @map("estudiante_id")
+  nombre        String
+  tipo          String
+  ruta          String
+  tamano        Int             @default(0)
+  version       Int             @default(1)
+  estado        EstadoDocumento @default(PENDIENTE)
+  comentario    String?
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  postulacion Postulacion @relation(fields: [postulacionId], references: [id])
+  estudiante  Estudiante  @relation(fields: [estudianteId], references: [id])
+
+  @@map("documentos")
+}
+
+/// Registro semanal de horas de práctica
+model RegistroHora {
+  id               String      @id @default(cuid())
+  postulacionId    String      @map("postulacion_id")
+  estudianteId     String      @map("estudiante_id")
+  tutorId          String?     @map("tutor_id")
+  semana           String
+  horasRegistradas Int         @default(0) @map("horas_registradas")
+  horasAcumuladas  Int         @default(0) @map("horas_acumuladas")
+  evidencia        Boolean     @default(false)
+  evidenciaUrl     String?     @map("evidencia_url")
+  estado           EstadoHoras @default(PENDIENTE)
+  comentario       String?
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  postulacion Postulacion       @relation(fields: [postulacionId], references: [id])
+  estudiante  Estudiante        @relation(fields: [estudianteId], references: [id])
+  tutor       TutorEmpresarial? @relation(fields: [tutorId], references: [id])
+
+  @@unique([postulacionId, semana])
+  @@map("registros_horas")
+}
+
+/// Evaluación de desempeño de un estudiante
+model Evaluacion {
+  id            String           @id @default(cuid())
+  postulacionId String           @map("postulacion_id")
+  estudianteId  String           @map("estudiante_id")
+  tutorId       String?          @map("tutor_id")
+  fechaLimite   DateTime         @map("fecha_limite")
+  avance        Int              @default(0)
+  resultado     Float?
+  estado        EstadoEvaluacion @default(PENDIENTE)
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  postulacion Postulacion        @relation(fields: [postulacionId], references: [id])
+  estudiante  Estudiante         @relation(fields: [estudianteId], references: [id])
+  tutor       TutorEmpresarial?  @relation(fields: [tutorId], references: [id])
+  detalles    DetalleEvaluacion[]
+
+  @@map("evaluaciones")
+}
+
+/// Criterio de evaluación configurable
+model CriterioEvaluacion {
+  id          String   @id @default(cuid())
+  nombre      String
+  descripcion String?
+  peso        Float    @default(1.0)
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  detalles DetalleEvaluacion[]
+
+  @@map("criterios_evaluacion")
+}
+
+/// Puntaje por criterio dentro de una evaluación
+model DetalleEvaluacion {
+  id           String   @id @default(cuid())
+  evaluacionId String   @map("evaluacion_id")
+  criterioId   String   @map("criterio_id")
+  puntaje      Float
+  comentario   String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  evaluacion Evaluacion         @relation(fields: [evaluacionId], references: [id])
+  criterio   CriterioEvaluacion @relation(fields: [criterioId], references: [id])
+
+  @@unique([evaluacionId, criterioId])
+  @@map("detalles_evaluacion")
+}
+
+/// Alerta o aviso dirigido a un usuario
+model Notificacion {
+  id        String                @id @default(cuid())
+  usuarioId String                @map("usuario_id")
+  categoria CategoriaNotificacion
+  titulo    String
+  resumen   String
+  prioridad Prioridad             @default(MEDIA)
+  leida     Boolean               @default(false)
+  accionUrl String?               @map("accion_url")
+  createdAt DateTime              @default(now()) @map("created_at")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("notificaciones")
+}
+
+/// Registro de acciones críticas del sistema
+model Auditoria {
+  id        String   @id @default(cuid())
+  usuarioId String?  @map("usuario_id")
+  accion    String
+  entidad   String
+  entidadId String?  @map("entidad_id")
+  detalles  Json?
+  ip        String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@map("auditorias")
+}
