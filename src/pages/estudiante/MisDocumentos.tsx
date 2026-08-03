@@ -1,129 +1,158 @@
-import { useState } from 'react';
-import { Upload, Eye, Download, X } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Upload, Download, CheckCircle, AlertCircle, FileText, RefreshCw, Clock } from 'lucide-react';
 import { StatusChip } from '../../components/StatusChip';
+import { api, ApiError } from '../../services/api';
+import type { DocumentoBackend, PostulacionBackend } from '../../types/api';
 
-const documentos = [
-  { nombre: 'Solicitud de prácticas', version: 'v2', fecha: '2026-04-02', tamano: '245 KB', estado: 'aprobada', obs: '' },
-  { nombre: 'Carta de presentación', version: 'v3', fecha: '2026-04-05', tamano: '182 KB', estado: 'aprobada', obs: '' },
-  { nombre: 'Currículum vitae', version: 'v1', fecha: '2026-03-20', tamano: '312 KB', estado: 'aprobada', obs: '' },
-  { nombre: 'Constancia académica', version: 'v1', fecha: '2026-03-20', tamano: '98 KB', estado: 'aprobada', obs: '' },
-  { nombre: 'Plan de actividades', version: 'v1', fecha: '2026-03-22', tamano: '156 KB', estado: 'pendiente', obs: 'Pendiente de envío. Formato PDF, máx. 5 MB.' },
+const docReqs = [
+  { nombre: 'Solicitud de prácticas', descripcion: 'Solicitud formal firmada por el estudiante' },
+  { nombre: 'Carta de presentación', descripcion: 'Carta emitida por la Facultad dirigida a la empresa' },
+  { nombre: 'Currículum vitae', descripcion: 'CV actualizado con competencias y datos de contacto' },
+  { nombre: 'Constancia académica', descripcion: 'Constancia de matrícula o historial de notas' },
+  { nombre: 'Plan de actividades', descripcion: 'Plan de trabajo firmado por el tutor empresarial' },
 ];
 
 export default function MisDocumentos() {
-  const [preview, setPreview] = useState<(typeof documentos)[0] | null>(null);
-  const [toast, setToast] = useState('');
+  const [postulacion, setPostulacion] = useState<PostulacionBackend | null>(null);
+  const [docs, setDocs] = useState<DocumentoBackend[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [uploadingName, setUploadingName] = useState<string | null>(null);
 
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const postulaciones = await api.get<PostulacionBackend[]>('/postulaciones');
+      if (Array.isArray(postulaciones) && postulaciones.length > 0) {
+        const activePost = postulaciones[0];
+        setPostulacion(activePost);
+        const docsRes = await api.get<DocumentoBackend[]>(`/postulaciones/${activePost.id}/documentos`);
+        setDocs(docsRes);
+      }
+    } catch (err) {
+      if (err instanceof ApiError) setError(err.message);
+      else setError('Error al cargar la lista de documentos.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const aprobados = documentos.filter(d => d.estado === 'aprobada').length;
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleFileUpload = async (nombreDoc: string, file: File) => {
+    if (!postulacion) return;
+    if (!file.name.endsWith('.pdf') && file.type !== 'application/pdf') {
+      alert('Solamente se permiten archivos en formato PDF.');
+      return;
+    }
+
+    setUploadingName(nombreDoc);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('nombre', nombreDoc);
+
+    try {
+      await api.post(`/postulaciones/${postulacion.id}/documentos`, formData);
+      fetchData();
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Error al subir el documento PDF.');
+    } finally {
+      setUploadingName(null);
+    }
+  };
+
+  const handleDescargar = async (doc: DocumentoBackend) => {
+    try {
+      await api.downloadBlob(`/documentos/${doc.id}/descargar`, `${doc.nombre}.pdf`);
+    } catch (err) {
+      alert('Error al descargar archivo desde el servidor.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-12 text-center text-sm" style={{ color: '#5F6B7A' }}>
+        Cargando tus documentos en tiempo real…
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-3xl space-y-6">
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white"
-          style={{ backgroundColor: '#172033' }}>{toast}</div>
+    <div className="max-w-4xl space-y-6">
+      <div>
+        <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Mis Documentos</h1>
+        <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Sube y gestiona los archivos PDF requeridos para tus prácticas preprofesionales.</p>
+      </div>
+
+      {error && (
+        <div className="flex items-center justify-between p-4 rounded-xl border text-sm" style={{ backgroundColor: '#FEE2E2', borderColor: '#FECACA', color: '#C43D4D' }}>
+          <div className="flex items-center gap-2">
+            <AlertCircle size={16} />
+            {error}
+          </div>
+          <button onClick={fetchData} className="flex items-center gap-1 text-xs font-semibold underline">
+            <RefreshCw size={12} /> Reintentar
+          </button>
+        </div>
       )}
 
-      <div>
-        <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Mis documentos</h1>
-        <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Documentos de tu proceso de prácticas preprofesionales.</p>
-      </div>
+      <div className="space-y-4">
+        {docReqs.map(req => {
+          const docExistente = docs.find(d => d.nombre.toLowerCase() === req.nombre.toLowerCase());
+          const isUploading = uploadingName === req.nombre;
+          const appEstado = docExistente
+            ? docExistente.estado === 'APROBADO' ? 'aprobada' : docExistente.estado === 'OBSERVADO' ? 'observada' : 'pendiente'
+            : undefined;
 
-      {/* Progress summary */}
-      <div className="p-5 rounded-2xl border bg-white" style={{ borderColor: '#DCE3EA' }}>
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-semibold" style={{ color: '#172033' }}>Progreso documentario</span>
-          <span className="text-sm font-bold" style={{ color: '#168A5B' }}>{aprobados}/{documentos.length} aprobados</span>
-        </div>
-        <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#EDF2F7' }}>
-          <div className="h-full rounded-full" style={{ width: `${(aprobados / documentos.length) * 100}%`, backgroundColor: '#168A5B' }} />
-        </div>
-      </div>
-
-      {/* Documents list */}
-      <div className="rounded-2xl border bg-white overflow-hidden" style={{ borderColor: '#DCE3EA' }}>
-        <table className="w-full">
-          <thead>
-            <tr style={{ backgroundColor: '#F4F7FA' }}>
-              {['Documento', 'Versión', 'Fecha', 'Tamaño', 'Estado', 'Acciones'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: '#5F6B7A' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {documentos.map((doc, i) => (
-              <tr key={i} className="border-t" style={{ borderColor: '#EDF2F7' }}>
-                <td className="px-4 py-3">
-                  <div className="text-sm font-medium" style={{ color: '#172033' }}>{doc.nombre}</div>
-                  {doc.obs && <div className="text-xs mt-0.5" style={{ color: '#B7791F' }}>{doc.obs}</div>}
-                </td>
-                <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{doc.version}</td>
-                <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{doc.fecha}</td>
-                <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{doc.tamano}</td>
-                <td className="px-4 py-3"><StatusChip estado={doc.estado as any} /></td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1">
-                    {doc.estado !== 'pendiente' && (
-                      <>
-                        <button onClick={() => setPreview(doc)} className="p-1.5 rounded-lg hover:bg-gray-100" style={{ color: '#5F6B7A' }}>
-                          <Eye size={13} />
-                        </button>
-                        <button className="p-1.5 rounded-lg hover:bg-gray-100" style={{ color: '#5F6B7A' }}>
-                          <Download size={13} />
-                        </button>
-                      </>
-                    )}
-                    {doc.estado === 'pendiente' && (
-                      <label className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
-                        style={{ backgroundColor: '#EFF6FF', color: '#2563EB' }}>
-                        <Upload size={12} /> Subir
-                        <input type="file" className="hidden" onChange={() => showToast('Documento subido. Pendiente de revisión.')} />
-                      </label>
-                    )}
+          return (
+            <div key={req.nombre} className="bg-white p-5 rounded-2xl border flex items-center gap-4 transition-all" style={{ borderColor: docExistente?.estado === 'APROBADO' ? '#A7F3D0' : '#DCE3EA' }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: docExistente ? '#EFF6FF' : '#F4F7FA' }}>
+                <FileText size={20} style={{ color: docExistente ? '#2563EB' : '#5F6B7A' }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-sm" style={{ color: '#172033' }}>{req.nombre}</h3>
+                  {docExistente && <span className="text-xs font-mono px-2 py-0.5 rounded bg-gray-100" style={{ color: '#5F6B7A' }}>v{docExistente.version}</span>}
+                </div>
+                <p className="text-xs mt-0.5" style={{ color: '#5F6B7A' }}>{req.descripcion}</p>
+                {docExistente?.comentario && (
+                  <div className="mt-2 text-xs p-2 rounded-lg" style={{ backgroundColor: '#FFFBEB', color: '#B7791F', border: '1px solid #FDE68A' }}>
+                    <strong>Observación:</strong> {docExistente.comentario}
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                )}
+              </div>
 
-      {/* Upload zone for pending */}
-      <div className="p-6 rounded-2xl border-2 border-dashed text-center" style={{ borderColor: '#DCE3EA' }}>
-        <Upload size={24} className="mx-auto mb-2" style={{ color: '#5F6B7A' }} />
-        <p className="text-sm font-medium" style={{ color: '#172033' }}>Arrastra aquí el Plan de actividades</p>
-        <p className="text-xs mt-1" style={{ color: '#5F6B7A' }}>PDF, DOCX · máx. 5 MB</p>
-        <label className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
-          style={{ backgroundColor: '#EFF6FF', color: '#2563EB' }}>
-          Seleccionar archivo
-          <input type="file" className="hidden" onChange={() => showToast('Documento subido. Pendiente de revisión.')} />
-        </label>
-      </div>
+              <div className="flex items-center gap-3">
+                {appEstado && <StatusChip estado={appEstado} />}
 
-      {/* Preview panel */}
-      {preview && (
-        <div className="fixed inset-0 z-40 flex">
-          <div className="flex-1" onClick={() => setPreview(null)} style={{ backgroundColor: 'rgba(0,0,0,0.3)' }} />
-          <div className="w-96 bg-white h-full shadow-2xl flex flex-col p-6" style={{ overflowY: 'auto' }}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold" style={{ color: '#172033' }}>{preview.nombre}</h3>
-              <button onClick={() => setPreview(null)} style={{ color: '#5F6B7A' }}><X size={16} /></button>
-            </div>
-            <div className="flex-1 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: '#F4F7FA', minHeight: 300 }}>
-              <div className="text-center">
-                <div className="text-5xl mb-3">📄</div>
-                <div className="text-sm" style={{ color: '#5F6B7A' }}>{preview.nombre}</div>
-                <div className="text-xs mt-1" style={{ color: '#5F6B7A' }}>{preview.version} · {preview.tamano}</div>
+                {docExistente && (
+                  <button onClick={() => handleDescargar(docExistente)} title="Descargar PDF" className="p-2 rounded-lg border hover:bg-gray-50" style={{ borderColor: '#DCE3EA', color: '#2563EB' }}>
+                    <Download size={16} />
+                  </button>
+                )}
+
+                <label className="flex items-center gap-2 px-4 py-2 rounded-lg border text-xs font-semibold cursor-pointer transition-colors" style={{ borderColor: '#DCE3EA', backgroundColor: isUploading ? '#EFF6FF' : '#FFFFFF', color: '#2563EB' }}>
+                  <Upload size={14} />
+                  {isUploading ? 'Subiendo PDF…' : docExistente ? 'Reemplazar' : 'Subir PDF'}
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    className="hidden"
+                    disabled={isUploading}
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileUpload(req.nombre, file);
+                    }}
+                  />
+                </label>
               </div>
             </div>
-            <button className="w-full py-2 rounded-lg border text-sm font-medium"
-              style={{ borderColor: '#DCE3EA', color: '#5F6B7A' }}>
-              <Download size={13} className="inline mr-1" /> Descargar
-            </button>
-          </div>
-        </div>
-      )}
+          );
+        })}
+      </div>
     </div>
   );
 }

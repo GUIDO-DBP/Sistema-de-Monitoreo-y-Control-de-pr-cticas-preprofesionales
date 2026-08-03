@@ -1,24 +1,26 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import type { AuthResponse, UserData } from '../types/api';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export class ApiError extends Error {
-  constructor(
-    public statusCode: number,
-    message: string,
-    public code?: string,
-    public details?: Record<string, unknown>,
-  ) {
+  status: number;
+  data: any;
+
+  constructor(status: number, message: string, data?: any) {
     super(message);
     this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
   }
 }
 
-interface RequestOptions extends Omit<RequestInit, 'body'> {
-  body?: Record<string, unknown> | FormData;
-}
-
-export async function apiFetch<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('smcpp_token');
+
+  const isFormData = options.body instanceof FormData;
+
   const headers: Record<string, string> = {
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(options.headers as Record<string, string>),
   };
 
@@ -26,66 +28,89 @@ export async function apiFetch<T>(endpoint: string, options: RequestOptions = {}
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  let bodyData: BodyInit | undefined;
-  if (options.body) {
-    if (options.body instanceof FormData) {
-      bodyData = options.body;
-    } else {
-      headers['Content-Type'] = 'application/json';
-      bodyData = JSON.stringify(options.body);
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  if (response.status === 401) {
+    localStorage.removeItem('smcpp_token');
+    localStorage.removeItem('smcpp_user');
+    localStorage.removeItem('smcpp_rol');
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login';
     }
   }
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-    body: bodyData,
-  });
+  // File download blob response
+  if (options.headers && (options.headers as any)['Accept'] === 'application/pdf') {
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new ApiError(response.status, errorText || 'Error al descargar archivo.');
+    }
+    return (await response.blob()) as unknown as T;
+  }
 
-  let jsonResponse: any = null;
-  try {
-    jsonResponse = await response.json();
-  } catch {
-    jsonResponse = null;
+  const contentType = response.headers.get('content-type');
+  let data: any = null;
+  if (contentType && contentType.includes('application/json')) {
+    data = await response.json();
+  } else {
+    data = await response.text();
   }
 
   if (!response.ok) {
-    const errorMessage = jsonResponse?.error || `Error HTTP ${response.status}`;
-    const errorCode = jsonResponse?.code;
-    const errorDetails = jsonResponse?.details;
-
-    if (response.status === 401) {
-      // Clear invalid/expired session
-      localStorage.removeItem('smcpp_token');
-      localStorage.removeItem('smcpp_user');
-      localStorage.removeItem('smcpp_rol');
-
-      // Redirect to login if not already on login page
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
-    }
-
-    throw new ApiError(response.status, errorMessage, errorCode, errorDetails);
+    const errorMessage =
+      typeof data === 'object' && data?.error
+        ? data.error
+        : typeof data === 'string'
+        ? data
+        : `Error HTTP ${response.status}`;
+    throw new ApiError(response.status, errorMessage, data);
   }
 
-  return (jsonResponse?.data !== undefined ? jsonResponse.data : jsonResponse) as T;
+  return data as T;
 }
 
-// Helpers
 export const api = {
-  get: <T>(endpoint: string, options?: RequestOptions) =>
-    apiFetch<T>(endpoint, { ...options, method: 'GET' }),
+  get: <T>(endpoint: string) => request<T>(endpoint, { method: 'GET' }),
+  post: <T>(endpoint: string, body?: any) =>
+    request<T>(endpoint, {
+      method: 'POST',
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    }),
+  put: <T>(endpoint: string, body: any) =>
+    request<T>(endpoint, {
+      method: 'PUT',
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    }),
+  patch: <T>(endpoint: string, body?: any) =>
+    request<T>(endpoint, {
+      method: 'PATCH',
+      body: body ? JSON.stringify(body) : undefined,
+    }),
+  delete: <T>(endpoint: string) => request<T>(endpoint, { method: 'DELETE' }),
 
-  post: <T>(endpoint: string, body?: Record<string, unknown> | FormData, options?: RequestOptions) =>
-    apiFetch<T>(endpoint, { ...options, method: 'POST', body }),
+  downloadBlob: async (endpoint: string, filename: string) => {
+    const token = localStorage.getItem('smcpp_token');
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+    });
 
-  put: <T>(endpoint: string, body?: Record<string, unknown> | FormData, options?: RequestOptions) =>
-    apiFetch<T>(endpoint, { ...options, method: 'PUT', body }),
+    if (!res.ok) {
+      throw new ApiError(res.status, 'Error al descargar archivo desde el servidor.');
+    }
 
-  patch: <T>(endpoint: string, body?: Record<string, unknown> | FormData, options?: RequestOptions) =>
-    apiFetch<T>(endpoint, { ...options, method: 'PATCH', body }),
-
-  delete: <T>(endpoint: string, options?: RequestOptions) =>
-    apiFetch<T>(endpoint, { ...options, method: 'DELETE' }),
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  },
 };

@@ -1,54 +1,38 @@
-import multer, { FileFilterCallback } from 'multer';
+import multer from 'multer';
 import path from 'path';
-import { Request } from 'express';
+import fs from 'fs';
 import { env } from '../config/env';
-import { AppError } from './error.middleware';
 
-const ALLOWED_MIME_TYPES = new Set([
-  'application/pdf',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'image/jpeg',
-  'image/png',
-]);
+const uploadsDir = path.resolve(__dirname, '../../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 const storage = multer.diskStorage({
-  destination(_req, _file, cb) {
-    cb(null, path.resolve(env.UPLOAD_DIR));
+  destination: (_req, _file, cb) => {
+    cb(null, uploadsDir);
   },
-  filename(_req, file, cb) {
+  filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname);
-    const base = path.basename(file.originalname, ext)
-      .replace(/[^a-zA-Z0-9_-]/g, '_')
-      .slice(0, 60);
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
-    cb(null, `${base}-${unique}${ext}`);
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `doc-${uniqueSuffix}${ext}`);
   },
 });
 
-function fileFilter(
-  _req: Request,
-  file: Express.Multer.File,
-  cb: FileFilterCallback,
-): void {
-  if (ALLOWED_MIME_TYPES.has(file.mimetype)) {
+const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  if (file.mimetype === 'application/pdf' || file.originalname.endsWith('.pdf')) {
     cb(null, true);
   } else {
-    cb(new AppError(415, 'Tipo de archivo no permitido.', 'UNSUPPORTED_MEDIA') as unknown as null, false);
+    cb(new Error('Formato no permitido. Solo se aceptan archivos PDF.'));
   }
-}
+};
 
-/** Single-file upload middleware — field name: "archivo" */
-export const uploadSingle = multer({
+const maxFileSizeMB = Number(process.env.MAX_FILE_SIZE_MB || 10);
+
+export const uploadSinglePdf = multer({
   storage,
   fileFilter,
-  limits: { fileSize: env.MAX_FILE_SIZE_MB * 1024 * 1024 },
-}).single('archivo');
-
-/** Multi-file upload middleware — field name: "archivos", max 5 */
-export const uploadMultiple = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: env.MAX_FILE_SIZE_MB * 1024 * 1024 },
-}).array('archivos', 5);
+  limits: {
+    fileSize: maxFileSizeMB * 1024 * 1024,
+  },
+}).single('file');

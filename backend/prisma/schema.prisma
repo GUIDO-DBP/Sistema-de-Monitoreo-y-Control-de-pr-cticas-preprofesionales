@@ -88,6 +88,7 @@ model Usuario {
   notificaciones          Notificacion[]
   auditorias              Auditoria[]
   postulacionesAsignadas  Postulacion[] @relation("ResponsablePostulacion")
+  documentosCargados      Documento[]   @relation("UsuarioCargadorDocumento")
 
   @@map("usuarios")
 }
@@ -119,10 +120,10 @@ model TutorEmpresarial {
   empresaId String  @map("empresa_id")
   cargo     String?
 
-  usuario        Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  empresa        Empresa      @relation(fields: [empresaId], references: [id])
-  postulaciones  Postulacion[] @relation("TutorPostulacion")
-  registrosHoras RegistroHora[]
+  usuario        Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  empresa        Empresa        @relation(fields: [empresaId], references: [id])
+  postulaciones  Postulacion[]  @relation("TutorPostulacion")
+  registrosHoras RegistroHora[] @relation("TutorValidadorHora")
   evaluaciones   Evaluacion[]
 
   @@map("tutores_empresariales")
@@ -140,8 +141,8 @@ model Empresa {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  convenios  Convenio[]
-  tutores    TutorEmpresarial[]
+  convenios     Convenio[]
+  tutores       TutorEmpresarial[]
   postulaciones Postulacion[]
 
   @@map("empresas")
@@ -149,18 +150,18 @@ model Empresa {
 
 /// Convenio institucional con una empresa
 model Convenio {
-  id                String         @id @default(cuid())
-  codigo            String         @unique
-  empresaId         String         @map("empresa_id")
-  rubro             String
-  inicio            DateTime
-  vencimiento       DateTime
-  vacantes          Int            @default(0)
-  estudiantesActivos Int           @default(0) @map("estudiantes_activos")
-  estado            EstadoConvenio @default(ACTIVO)
-  activo            Boolean        @default(true)
-  createdAt         DateTime       @default(now()) @map("created_at")
-  updatedAt         DateTime       @updatedAt @map("updated_at")
+  id                 String         @id @default(cuid())
+  codigo             String         @unique
+  empresaId          String         @map("empresa_id")
+  rubro              String
+  inicio             DateTime
+  vencimiento        DateTime
+  vacantes           Int            @default(0)
+  estudiantesActivos Int            @default(0) @map("estudiantes_activos")
+  estado             EstadoConvenio @default(ACTIVO)
+  activo             Boolean        @default(true)
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
 
   empresa       Empresa       @relation(fields: [empresaId], references: [id])
   postulaciones Postulacion[]
@@ -210,42 +211,51 @@ model Documento {
   postulacionId String          @map("postulacion_id")
   estudianteId  String          @map("estudiante_id")
   nombre        String
-  tipo          String
+  nombreInterno String?         @map("nombre_interno")
+  tipo          String          @default("application/pdf")
   ruta          String
   tamano        Int             @default(0)
   version       Int             @default(1)
   estado        EstadoDocumento @default(PENDIENTE)
   comentario    String?
+  cargadoPorId  String?         @map("cargado_por_id")
   createdAt     DateTime        @default(now()) @map("created_at")
   updatedAt     DateTime        @updatedAt @map("updated_at")
 
   postulacion Postulacion @relation(fields: [postulacionId], references: [id])
   estudiante  Estudiante  @relation(fields: [estudianteId], references: [id])
+  cargadoPor  Usuario?    @relation("UsuarioCargadorDocumento", fields: [cargadoPorId], references: [id])
 
   @@map("documentos")
 }
 
-/// Registro semanal de horas de práctica
+/// Registro diario / semanal de horas de práctica
 model RegistroHora {
   id               String      @id @default(cuid())
   postulacionId    String      @map("postulacion_id")
   estudianteId     String      @map("estudiante_id")
   tutorId          String?     @map("tutor_id")
-  semana           String
-  horasRegistradas Int         @default(0) @map("horas_registradas")
+  semana           String?
+  fecha            DateTime    @default(now())
+  horaEntrada      String      @default("08:00") @map("hora_entrada")
+  horaSalida       String      @default("16:00") @map("hora_salida")
+  minutosPausa     Int         @default(60) @map("minutos_pausa")
+  horasCalculadas  Float       @default(7.0) @map("horas_calculadas")
+  horasRegistradas Int         @default(7) @map("horas_registradas")
   horasAcumuladas  Int         @default(0) @map("horas_acumuladas")
+  actividad        String      @default("Desarrollo de tareas asignadas")
   evidencia        Boolean     @default(false)
   evidenciaUrl     String?     @map("evidencia_url")
   estado           EstadoHoras @default(PENDIENTE)
   comentario       String?
+  fechaValidacion  DateTime?   @map("fecha_validacion")
   createdAt        DateTime    @default(now()) @map("created_at")
   updatedAt        DateTime    @updatedAt @map("updated_at")
 
   postulacion Postulacion       @relation(fields: [postulacionId], references: [id])
   estudiante  Estudiante        @relation(fields: [estudianteId], references: [id])
-  tutor       TutorEmpresarial? @relation(fields: [tutorId], references: [id])
+  tutor       TutorEmpresarial? @relation("TutorValidadorHora", fields: [tutorId], references: [id])
 
-  @@unique([postulacionId, semana])
   @@map("registros_horas")
 }
 
@@ -259,6 +269,9 @@ model Evaluacion {
   avance        Int              @default(0)
   resultado     Float?
   estado        EstadoEvaluacion @default(PENDIENTE)
+  fortalezas    String?
+  aspectosMejorar String?        @map("aspectos_mejorar")
+  fechaEnvio    DateTime?        @map("fecha_envio")
   createdAt     DateTime         @default(now()) @map("created_at")
   updatedAt     DateTime         @updatedAt @map("updated_at")
 
@@ -274,8 +287,9 @@ model Evaluacion {
 model CriterioEvaluacion {
   id          String   @id @default(cuid())
   nombre      String
+  categoria   String   @default("General")
   descripcion String?
-  peso        Float    @default(1.0)
+  peso        Float    @default(11.11)
   activo      Boolean  @default(true)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
