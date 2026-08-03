@@ -1,0 +1,11 @@
+{
+  "title": "SMCPP - Sistema de Monitoreo y Control de Prácticas Preprofesionales",
+  "description": "Sistema de Monitoreo y Control de Prácticas Preprofesionales",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
