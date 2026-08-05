@@ -91,9 +91,11 @@ export default function MisDocumentos() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Mis Documentos</h1>
-        <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Sube y gestiona los archivos PDF requeridos para tus prácticas preprofesionales.</p>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Mis Documentos</h1>
+          <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Sube y gestiona los archivos PDF requeridos para tus prácticas preprofesionales.</p>
+        </div>
       </div>
 
       {error && (
@@ -117,14 +119,19 @@ export default function MisDocumentos() {
             : undefined;
 
           return (
-            <div key={req.nombre} className="bg-white p-5 rounded-2xl border flex items-center gap-4 transition-all" style={{ borderColor: docExistente?.estado === 'APROBADO' ? '#A7F3D0' : '#DCE3EA' }}>
+            <div key={req.nombre} className="bg-white p-4 sm:p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center gap-4 transition-all" style={{ borderColor: docExistente?.estado === 'APROBADO' ? '#A7F3D0' : '#DCE3EA' }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: docExistente ? '#EFF6FF' : '#F4F7FA' }}>
                 <FileText size={20} style={{ color: docExistente ? '#2563EB' : '#5F6B7A' }} />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+              <div className="flex-1 min-w-0 w-full">
+                <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold text-sm" style={{ color: '#172033' }}>{req.nombre}</h3>
                   {docExistente && <span className="text-xs font-mono px-2 py-0.5 rounded bg-gray-100" style={{ color: '#5F6B7A' }}>v{docExistente.version}</span>}
+                  {appEstado && (
+                    <div className="sm:hidden ml-auto">
+                      <StatusChip estado={appEstado} />
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs mt-0.5" style={{ color: '#5F6B7A' }}>{req.descripcion}</p>
                 {docExistente?.comentario && (
@@ -134,16 +141,18 @@ export default function MisDocumentos() {
                 )}
               </div>
 
-              <div className="flex items-center gap-3">
-                {appEstado && <StatusChip estado={appEstado} />}
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+                <div className="hidden sm:block">
+                  {appEstado && <StatusChip estado={appEstado} />}
+                </div>
 
                 {docExistente && (
-                  <button onClick={() => handleDescargar(docExistente)} title="Descargar PDF" className="p-2 rounded-lg border hover:bg-gray-50" style={{ borderColor: '#DCE3EA', color: '#2563EB' }}>
+                  <button onClick={() => handleDescargar(docExistente)} title="Descargar PDF" className="p-2 rounded-lg border hover:bg-gray-50 flex-shrink-0" style={{ borderColor: '#DCE3EA', color: '#2563EB' }}>
                     <Download size={16} />
                   </button>
                 )}
 
-                <label className="flex items-center gap-2 px-4 py-2 rounded-lg border text-xs font-semibold cursor-pointer transition-colors" style={{ borderColor: '#DCE3EA', backgroundColor: isUploading ? '#EFF6FF' : '#FFFFFF', color: '#2563EB' }}>
+                <label className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg border text-xs font-semibold cursor-pointer transition-colors text-center" style={{ borderColor: '#DCE3EA', backgroundColor: isUploading ? '#EFF6FF' : '#FFFFFF', color: '#2563EB' }}>
                   <Upload size={14} />
                   {isUploading ? 'Subiendo PDF…' : docExistente ? 'Reemplazar' : 'Subir PDF'}
                   <input

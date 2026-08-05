@@ -98,7 +98,7 @@ export default function Documentos() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b pb-2" style={{ borderColor: '#DCE3EA' }}>
+      <div className="flex gap-2 border-b pb-2 overflow-x-auto whitespace-nowrap scrollbar-hide" style={{ borderColor: '#DCE3EA' }}>
         {[
           { key: 'todos', label: 'Todos' },
           { key: 'PENDIENTE', label: 'Pendientes' },
@@ -141,54 +141,107 @@ export default function Documentos() {
             Cargando documentos en tiempo real…
           </div>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr style={{ backgroundColor: '#F4F7FA' }}>
-                {['Documento', 'Estudiante', 'Versión', 'Tamaño', 'Fecha Carga', 'Estado', 'Acciones'].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: '#5F6B7A' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr style={{ backgroundColor: '#F4F7FA' }}>
+                    {['Documento', 'Estudiante', 'Versión', 'Tamaño', 'Fecha Carga', 'Estado', 'Acciones'].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: '#5F6B7A' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(d => {
+                    const estNombre = d.estudiante?.usuario?.nombre || '—';
+                    const appEstado = d.estado === 'APROBADO' ? 'aprobada' : d.estado === 'OBSERVADO' ? 'observada' : 'pendiente';
+
+                    return (
+                      <tr key={d.id} className="border-t hover:bg-gray-50 transition-colors" style={{ borderColor: '#EDF2F7' }}>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <FileText size={16} style={{ color: '#2563EB' }} />
+                            <span className="text-sm font-medium" style={{ color: '#172033' }}>{d.nombre}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: '#172033' }}>{estNombre}</td>
+                        <td className="px-4 py-3 text-xs font-mono whitespace-nowrap" style={{ color: '#5F6B7A' }}>v{d.version}</td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{(d.tamano / 1024).toFixed(1)} KB</td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{new Date(d.createdAt).toLocaleDateString()}</td>
+                        <td className="px-4 py-3 whitespace-nowrap"><StatusChip estado={appEstado} /></td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => handleDescargar(d)} title="Descargar PDF" className="p-1.5 rounded-lg border hover:bg-gray-100 transition-colors" style={{ borderColor: '#DCE3EA', color: '#2563EB' }}>
+                              <Download size={14} />
+                            </button>
+                            {d.estado !== 'APROBADO' && (
+                              <button onClick={() => handleAprobar(d.id)} title="Aprobar Documento" className="p-1.5 rounded-lg text-white hover:bg-emerald-700 transition-colors" style={{ backgroundColor: '#168A5B' }}>
+                                <CheckCircle size={14} />
+                              </button>
+                            )}
+                            {d.estado !== 'OBSERVADO' && (
+                              <button onClick={() => { setSelectedDoc(d); setObservacionTxt(d.comentario || ''); }} title="Observar Documento" className="p-1.5 rounded-lg text-white hover:bg-amber-700 transition-colors" style={{ backgroundColor: '#B7791F' }}>
+                                <MessageSquare size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="md:hidden divide-y" style={{ borderColor: '#EDF2F7' }}>
               {filtered.map(d => {
                 const estNombre = d.estudiante?.usuario?.nombre || '—';
                 const appEstado = d.estado === 'APROBADO' ? 'aprobada' : d.estado === 'OBSERVADO' ? 'observada' : 'pendiente';
 
                 return (
-                  <tr key={d.id} className="border-t hover:bg-gray-50 transition-colors" style={{ borderColor: '#EDF2F7' }}>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <FileText size={16} style={{ color: '#2563EB' }} />
-                        <span className="text-sm font-medium" style={{ color: '#172033' }}>{d.nombre}</span>
+                  <div key={d.id} className="p-4 space-y-3">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex gap-2">
+                        <FileText size={16} className="mt-0.5 flex-shrink-0" style={{ color: '#2563EB' }} />
+                        <div>
+                          <div className="text-sm font-medium leading-tight" style={{ color: '#172033' }}>{d.nombre}</div>
+                          <div className="text-xs font-medium mt-1" style={{ color: '#172033' }}>{estNombre}</div>
+                        </div>
                       </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm" style={{ color: '#172033' }}>{estNombre}</td>
-                    <td className="px-4 py-3 text-xs font-mono" style={{ color: '#5F6B7A' }}>v{d.version}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{(d.tamano / 1024).toFixed(1)} KB</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{new Date(d.createdAt).toLocaleDateString()}</td>
-                    <td className="px-4 py-3"><StatusChip estado={appEstado} /></td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => handleDescargar(d)} title="Descargar PDF" className="p-1.5 rounded-lg border hover:bg-gray-100" style={{ borderColor: '#DCE3EA', color: '#2563EB' }}>
-                          <Download size={14} />
+                      <StatusChip estado={appEstado} />
+                    </div>
+                    
+                    <div className="text-xs space-y-1 pl-6">
+                      <div className="flex justify-between">
+                        <span style={{ color: '#5F6B7A' }}>Versión / Tamaño:</span>
+                        <span style={{ color: '#172033' }}>v{d.version} ({(d.tamano / 1024).toFixed(1)} KB)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span style={{ color: '#5F6B7A' }}>Fecha de Carga:</span>
+                        <span style={{ color: '#172033' }}>{new Date(d.createdAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-2 pl-6">
+                      <button onClick={() => handleDescargar(d)} className="flex-1 py-1.5 flex items-center justify-center gap-1.5 rounded-lg border hover:bg-gray-100 transition-colors" style={{ borderColor: '#DCE3EA', color: '#2563EB' }}>
+                        <Download size={14} /> <span className="text-xs font-medium">Descargar</span>
+                      </button>
+                      {d.estado !== 'APROBADO' && (
+                        <button onClick={() => handleAprobar(d.id)} className="flex-1 py-1.5 flex items-center justify-center gap-1.5 rounded-lg text-white hover:bg-emerald-700 transition-colors" style={{ backgroundColor: '#168A5B' }}>
+                          <CheckCircle size={14} /> <span className="text-xs font-medium">Aprobar</span>
                         </button>
-                        {d.estado !== 'APROBADO' && (
-                          <button onClick={() => handleAprobar(d.id)} title="Aprobar Documento" className="p-1.5 rounded-lg text-white" style={{ backgroundColor: '#168A5B' }}>
-                            <CheckCircle size={14} />
-                          </button>
-                        )}
-                        {d.estado !== 'OBSERVADO' && (
-                          <button onClick={() => { setSelectedDoc(d); setObservacionTxt(d.comentario || ''); }} title="Observar Documento" className="p-1.5 rounded-lg text-white" style={{ backgroundColor: '#B7791F' }}>
-                            <MessageSquare size={14} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+                      )}
+                      {d.estado !== 'OBSERVADO' && (
+                        <button onClick={() => { setSelectedDoc(d); setObservacionTxt(d.comentario || ''); }} className="flex-1 py-1.5 flex items-center justify-center gap-1.5 rounded-lg text-white hover:bg-amber-700 transition-colors" style={{ backgroundColor: '#B7791F' }}>
+                          <MessageSquare size={14} /> <span className="text-xs font-medium">Observar</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
 
         {!loading && filtered.length === 0 && (
@@ -201,7 +254,7 @@ export default function Documentos() {
       {/* Observation Modal */}
       {selectedDoc && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md space-y-4 border shadow-xl" style={{ borderColor: '#DCE3EA' }}>
+          <div className="bg-white rounded-2xl p-6 w-full sm:max-w-md space-y-4 border shadow-xl" style={{ borderColor: '#DCE3EA', maxWidth: 'calc(100vw - 32px)' }}>
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg" style={{ color: '#172033' }}>Observar Documento</h3>
               <button onClick={() => setSelectedDoc(null)} style={{ color: '#5F6B7A' }}><X size={18} /></button>

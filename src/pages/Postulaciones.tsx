@@ -82,20 +82,20 @@ export default function Postulaciones() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Postulaciones</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Postulaciones</h1>
           <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Gestión en tiempo real de expedientes con el backend SMCPP.</p>
         </div>
-        <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium"
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <button className="flex items-center justify-center gap-2 px-4 py-2 w-full sm:w-auto rounded-lg border text-sm font-medium"
             style={{ borderColor: '#DCE3EA', color: '#5F6B7A', backgroundColor: '#FFFFFF' }}>
-            <Download size={14} /> Exportar
+            <Download size={16} /> Exportar
           </button>
           <button onClick={() => navigate('/postulaciones/nueva')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold"
+            className="flex items-center justify-center gap-2 px-4 py-2 w-full sm:w-auto rounded-lg text-sm font-semibold"
             style={{ backgroundColor: '#2563EB', color: '#FFFFFF' }}>
-            <Plus size={14} /> Nueva postulación
+            <Plus size={16} /> Nueva postulación
           </button>
         </div>
       </div>
@@ -114,7 +114,7 @@ export default function Postulaciones() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-0 border-b" style={{ borderColor: '#DCE3EA' }}>
+      <div className="flex gap-0 border-b overflow-x-auto whitespace-nowrap" style={{ borderColor: '#DCE3EA' }}>
         {tabs.map(t => {
           const count = t.estado === 'TODAS'
             ? postulaciones.length
@@ -123,7 +123,7 @@ export default function Postulaciones() {
             <button
               key={t.estado}
               onClick={() => setTab(t.estado)}
-              className="flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors"
+              className="flex items-center gap-1.5 px-3 sm:px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors"
               style={{
                 borderColor: tab === t.estado ? '#2563EB' : 'transparent',
                 color: tab === t.estado ? '#2563EB' : '#5F6B7A',
@@ -138,8 +138,8 @@ export default function Postulaciones() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-xs">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="relative flex-1 sm:max-w-xs">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#5F6B7A' }} />
           <input
             className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border outline-none"
@@ -149,9 +149,9 @@ export default function Postulaciones() {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm ml-auto"
+        <button className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-sm w-full sm:w-auto sm:ml-auto"
           style={{ borderColor: '#DCE3EA', color: '#5F6B7A', backgroundColor: '#FFFFFF' }}>
-          <SlidersHorizontal size={13} /> Filtros
+          <SlidersHorizontal size={14} /> Filtros
         </button>
       </div>
 
@@ -171,22 +171,75 @@ export default function Postulaciones() {
             Cargando postulaciones desde la API…
           </div>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr style={{ backgroundColor: '#F4F7FA' }}>
-                <th className="px-4 py-3">
-                  <input type="checkbox" checked={allChecked}
-                    onChange={() => setSelected(allChecked ? [] : filtered.map(p => p.id))}
-                    style={{ accentColor: '#2563EB' }} />
-                </th>
-                {['Código / Estudiante', 'Empresa receptora', 'Fecha de envío', 'Documentos', 'Estado', 'Responsable'].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: '#5F6B7A' }}>
-                    <span className="flex items-center gap-1">{h} <ChevronDown size={11} /></span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr style={{ backgroundColor: '#F4F7FA' }}>
+                    <th className="px-4 py-3 w-10">
+                      <input type="checkbox" checked={allChecked}
+                        onChange={() => setSelected(allChecked ? [] : filtered.map(p => p.id))}
+                        style={{ accentColor: '#2563EB' }} />
+                    </th>
+                    {['Código / Estudiante', 'Empresa receptora', 'Fecha de envío', 'Documentos', 'Estado', 'Responsable'].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: '#5F6B7A' }}>
+                        <span className="flex items-center gap-1">{h} <ChevronDown size={11} /></span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((p) => {
+                    const estUser = p.estudiante?.usuario;
+                    const estNombre = estUser?.nombre || 'Ana Torres Mamani';
+                    const estCodigo = p.codigo;
+                    const empNombre = p.empresa?.nombre || '—';
+                    const docsCount = p._count?.documentos || 5;
+                    const appEstado = p.estado === 'APROBADA' ? 'aprobada' :
+                      p.estado === 'EN_REVISION' ? 'en_revision' :
+                      p.estado === 'OBSERVADA' ? 'observada' :
+                      p.estado === 'RECHAZADA' ? 'rechazada' : 'pendiente';
+
+                    return (
+                      <tr
+                        key={p.id}
+                        className="border-t hover:bg-gray-50 transition-colors cursor-pointer"
+                        style={{ borderColor: '#EDF2F7', backgroundColor: selected.includes(p.id) ? '#EFF6FF' : undefined }}
+                        onClick={() => navigate(`/postulaciones/${p.codigo}`)}
+                      >
+                        <td className="px-4 py-3" onClick={e => { e.stopPropagation(); toggle(p.id); }}>
+                          <input type="checkbox" checked={selected.includes(p.id)} onChange={() => toggle(p.id)}
+                            style={{ accentColor: '#2563EB' }} />
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <Avatar iniciales={estNombre.split(' ').map(n=>n[0]).join('').slice(0,2)} color="#2563EB" size="sm" />
+                            <div>
+                              <div className="text-sm font-medium" style={{ color: '#172033' }}>{estNombre}</div>
+                              <div className="text-xs font-mono" style={{ color: '#5F6B7A' }}>{estCodigo}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm font-medium whitespace-nowrap" style={{ color: '#172033' }}>{empNombre}</td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{new Date(p.fechaEnvio).toLocaleDateString()}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#EDF2F7' }}>
+                              <div className="h-full rounded-full" style={{ width: `${(docsCount / 5) * 100}%`, backgroundColor: '#168A5B' }} />
+                            </div>
+                            <span className="text-xs font-semibold" style={{ color: '#172033' }}>{docsCount}/5</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap"><StatusChip estado={appEstado} /></td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{p.responsable?.nombre || 'Coord. Carlos Ramos'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="md:hidden divide-y" style={{ borderColor: '#EDF2F7' }}>
               {filtered.map((p) => {
                 const estUser = p.estudiante?.usuario;
                 const estNombre = estUser?.nombre || 'Ana Torres Mamani';
@@ -199,42 +252,51 @@ export default function Postulaciones() {
                   p.estado === 'RECHAZADA' ? 'rechazada' : 'pendiente';
 
                 return (
-                  <tr
-                    key={p.id}
-                    className="border-t hover:bg-gray-50 transition-colors cursor-pointer"
-                    style={{ borderColor: '#EDF2F7', backgroundColor: selected.includes(p.id) ? '#EFF6FF' : undefined }}
-                    onClick={() => navigate(`/postulaciones/${p.codigo}`)}
-                  >
-                    <td className="px-4 py-3" onClick={e => { e.stopPropagation(); toggle(p.id); }}>
-                      <input type="checkbox" checked={selected.includes(p.id)} onChange={() => toggle(p.id)}
-                        style={{ accentColor: '#2563EB' }} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <Avatar iniciales={estNombre.split(' ').map(n=>n[0]).join('').slice(0,2)} color="#2563EB" size="sm" />
-                        <div>
-                          <div className="text-sm font-medium" style={{ color: '#172033' }}>{estNombre}</div>
-                          <div className="text-xs font-mono" style={{ color: '#5F6B7A' }}>{estCodigo}</div>
+                  <div key={p.id} className="p-4 space-y-3 cursor-pointer hover:bg-gray-50"
+                       style={{ backgroundColor: selected.includes(p.id) ? '#EFF6FF' : undefined }}
+                       onClick={() => navigate(`/postulaciones/${p.codigo}`)}>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className="pt-1" onClick={e => { e.stopPropagation(); toggle(p.id); }}>
+                        <input type="checkbox" checked={selected.includes(p.id)} onChange={() => toggle(p.id)}
+                               style={{ accentColor: '#2563EB' }} className="w-4 h-4 rounded" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="text-sm font-medium" style={{ color: '#172033' }}>{estNombre}</div>
+                            <div className="text-xs font-mono" style={{ color: '#5F6B7A' }}>{estCodigo}</div>
+                          </div>
+                          <StatusChip estado={appEstado} />
+                        </div>
+                        <div className="text-xs font-medium mt-1" style={{ color: '#172033' }}>{empNombre}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs space-y-1 ml-7">
+                      <div className="flex justify-between">
+                        <span style={{ color: '#5F6B7A' }}>Fecha de envío:</span>
+                        <span style={{ color: '#172033' }}>{new Date(p.fechaEnvio).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span style={{ color: '#5F6B7A' }}>Documentos:</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#EDF2F7' }}>
+                            <div className="h-full rounded-full" style={{ width: `${(docsCount / 5) * 100}%`, backgroundColor: '#168A5B' }} />
+                          </div>
+                          <span className="font-semibold" style={{ color: '#172033' }}>{docsCount}/5</span>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm font-medium" style={{ color: '#172033' }}>{empNombre}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{new Date(p.fechaEnvio).toLocaleDateString()}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#EDF2F7' }}>
-                          <div className="h-full rounded-full" style={{ width: `${(docsCount / 5) * 100}%`, backgroundColor: '#168A5B' }} />
-                        </div>
-                        <span className="text-xs font-semibold" style={{ color: '#172033' }}>{docsCount}/5</span>
+                      <div className="flex justify-between">
+                        <span style={{ color: '#5F6B7A' }}>Responsable:</span>
+                        <span style={{ color: '#172033' }}>{p.responsable?.nombre || 'Coord. Carlos Ramos'}</span>
                       </div>
-                    </td>
-                    <td className="px-4 py-3"><StatusChip estado={appEstado} /></td>
-                    <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{p.responsable?.nombre || 'Coord. Carlos Ramos'}</td>
-                  </tr>
+                    </div>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
 
         {!loading && filtered.length === 0 && (

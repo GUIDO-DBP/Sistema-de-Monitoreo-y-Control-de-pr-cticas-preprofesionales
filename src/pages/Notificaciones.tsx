@@ -98,7 +98,7 @@ export default function Notificaciones({ rol }: NotificacionesProps) {
         </div>
       )}
 
-      <div className="grid gap-6" style={{ gridTemplateColumns: '320px 1fr' }}>
+      <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-4 sm:gap-6">
         {/* Left: list */}
         <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: '#DCE3EA' }}>
           {/* Category tabs */}
@@ -209,8 +209,8 @@ export default function Notificaciones({ rol }: NotificacionesProps) {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border flex items-center justify-center" style={{ borderColor: '#DCE3EA', minHeight: 300 }}>
-            <div className="text-center">
+          <div className="hidden md:flex bg-white rounded-2xl border items-center justify-center" style={{ borderColor: '#DCE3EA', minHeight: 300 }}>
+            <div className="text-center p-6">
               <Bell size={32} style={{ color: '#DCE3EA', margin: '0 auto 12px' }} />
               <p className="text-sm" style={{ color: '#5F6B7A' }}>Selecciona una notificación para ver el detalle.</p>
             </div>

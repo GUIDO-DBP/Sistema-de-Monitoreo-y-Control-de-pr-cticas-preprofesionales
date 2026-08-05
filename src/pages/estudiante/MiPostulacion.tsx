@@ -70,17 +70,19 @@ export default function MiPostulacion() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Mi postulación</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Mi postulación</h1>
           <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Estado y avance de tu proceso de prácticas preprofesionales.</p>
         </div>
-        <StatusChip estado={appEstado} />
+        <div className="self-start sm:self-auto">
+          <StatusChip estado={appEstado} />
+        </div>
       </div>
 
       {/* Empresa info */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="p-5 rounded-2xl border bg-white" style={{ borderColor: '#DCE3EA' }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 sm:p-5 rounded-2xl border bg-white" style={{ borderColor: '#DCE3EA' }}>
           <h2 className="text-sm font-semibold mb-3" style={{ color: '#172033' }}>Empresa y práctica</h2>
           <div className="space-y-2">
             {[
@@ -99,7 +101,7 @@ export default function MiPostulacion() {
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl border bg-white" style={{ borderColor: '#DCE3EA' }}>
+        <div className="p-4 sm:p-5 rounded-2xl border bg-white" style={{ borderColor: '#DCE3EA' }}>
           <h2 className="text-sm font-semibold mb-3" style={{ color: '#172033' }}>Contactos asignados</h2>
           <div className="space-y-3">
             {[
@@ -107,13 +109,13 @@ export default function MiPostulacion() {
               { rol: 'Tutor empresarial', nombre: postulacion.tutor?.usuario?.nombre || 'Ing. Carlos Medina', color: '#0F9F92' },
             ].map(c => (
               <div key={c.rol} className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+                <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0"
                   style={{ backgroundColor: c.color }}>
                   {c.nombre.slice(0, 2)}
                 </div>
-                <div>
-                  <div className="text-xs font-medium" style={{ color: '#172033' }}>{c.nombre}</div>
-                  <div className="text-xs" style={{ color: '#5F6B7A' }}>{c.rol}</div>
+                <div className="min-w-0">
+                  <div className="text-xs font-medium truncate" style={{ color: '#172033' }}>{c.nombre}</div>
+                  <div className="text-xs truncate" style={{ color: '#5F6B7A' }}>{c.rol}</div>
                 </div>
               </div>
             ))}

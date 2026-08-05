@@ -66,14 +66,14 @@ export default function Reportes() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Reportes e Indicadores de Gestión</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Reportes e Indicadores de Gestión</h1>
           <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Consolidado estadístico del programa de prácticas preprofesionales.</p>
         </div>
         <button
           onClick={handleExportCSV}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium hover:bg-gray-50 transition-colors"
+          className="flex items-center justify-center gap-2 px-4 py-2 w-full sm:w-auto rounded-lg border text-sm font-medium hover:bg-gray-50 transition-colors"
           style={{ borderColor: '#DCE3EA', color: '#172033', backgroundColor: '#FFFFFF' }}
         >
           <Download size={14} /> Exportar CSV
@@ -93,14 +93,14 @@ export default function Reportes() {
       )}
 
       {/* Primary KPI Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: 'Total Estudiantes', val: resumen?.totalEstudiantes || 0, icon: Users, color: '#2563EB' },
           { label: 'Convenios Activos', val: resumen?.conveniosActivos || 0, icon: Building2, color: '#168A5B' },
           { label: 'Horas Aprobadas', val: `${resumen?.horasTotalesAprobadas || 0}h`, icon: CheckCircle2, color: '#0F9F92' },
           { label: 'Promedio Evaluación', val: `${resumen?.promedioEvaluaciones || 0} / 5.0`, icon: BarChart2, color: '#B7791F' },
         ].map(kpi => (
-          <div key={kpi.label} className="bg-white p-5 rounded-2xl border space-y-2" style={{ borderColor: '#DCE3EA' }}>
+          <div key={kpi.label} className="bg-white p-4 sm:p-5 rounded-2xl border space-y-2" style={{ borderColor: '#DCE3EA' }}>
             <div className="flex justify-between items-center">
               <span className="text-xs font-medium" style={{ color: '#5F6B7A' }}>{kpi.label}</span>
               <kpi.icon size={18} style={{ color: kpi.color }} />
@@ -111,8 +111,8 @@ export default function Reportes() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-2xl border space-y-4" style={{ borderColor: '#DCE3EA' }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-white p-5 sm:p-6 rounded-2xl border space-y-4" style={{ borderColor: '#DCE3EA' }}>
           <h3 className="font-semibold text-base" style={{ color: '#172033' }}>Resumen de Postulaciones</h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center text-sm">
@@ -126,7 +126,7 @@ export default function Reportes() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border space-y-4" style={{ borderColor: '#DCE3EA' }}>
+        <div className="bg-white p-5 sm:p-6 rounded-2xl border space-y-4" style={{ borderColor: '#DCE3EA' }}>
           <h3 className="font-semibold text-base" style={{ color: '#172033' }}>Estado de Convenios Institucionales</h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center text-sm">
@@ -146,27 +146,60 @@ export default function Reportes() {
         <div className="p-4 border-b font-semibold text-sm" style={{ borderColor: '#EDF2F7', color: '#172033' }}>
           Detalle de Convenios Institucionales Vigentes
         </div>
-        <table className="w-full">
-          <thead>
-            <tr style={{ backgroundColor: '#F4F7FA' }}>
-              {['Código', 'Empresa', 'Rubro', 'Vencimiento', 'Vacantes Totales', 'Estudiantes Activos'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: '#5F6B7A' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {convenios.map(c => (
-              <tr key={c.id} className="border-t hover:bg-gray-50 transition-colors" style={{ borderColor: '#EDF2F7' }}>
-                <td className="px-4 py-3 text-xs font-mono" style={{ color: '#5F6B7A' }}>{c.codigo}</td>
-                <td className="px-4 py-3 text-sm font-medium" style={{ color: '#172033' }}>{c.empresa?.nombre || '—'}</td>
-                <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{c.rubro}</td>
-                <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{new Date(c.vencimiento).toLocaleDateString()}</td>
-                <td className="px-4 py-3 text-xs font-bold" style={{ color: '#172033' }}>{c.vacantes}</td>
-                <td className="px-4 py-3 text-xs font-bold text-blue-600">{c.estudiantesActivos}</td>
+        
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr style={{ backgroundColor: '#F4F7FA' }}>
+                {['Código', 'Empresa', 'Rubro', 'Vencimiento', 'Vacantes Totales', 'Estudiantes Activos'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: '#5F6B7A' }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {convenios.map(c => (
+                <tr key={c.id} className="border-t hover:bg-gray-50 transition-colors" style={{ borderColor: '#EDF2F7' }}>
+                  <td className="px-4 py-3 text-xs font-mono whitespace-nowrap" style={{ color: '#5F6B7A' }}>{c.codigo}</td>
+                  <td className="px-4 py-3 text-sm font-medium whitespace-nowrap" style={{ color: '#172033' }}>{c.empresa?.nombre || '—'}</td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{c.rubro}</td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{new Date(c.vencimiento).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-xs font-bold whitespace-nowrap" style={{ color: '#172033' }}>{c.vacantes}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-blue-600 whitespace-nowrap">{c.estudiantesActivos}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="md:hidden divide-y" style={{ borderColor: '#EDF2F7' }}>
+          {convenios.map(c => (
+            <div key={c.id} className="p-4 space-y-3">
+              <div>
+                <div className="text-sm font-medium" style={{ color: '#172033' }}>{c.empresa?.nombre || '—'}</div>
+                <div className="text-xs font-mono mt-0.5" style={{ color: '#5F6B7A' }}>{c.codigo}</div>
+              </div>
+              
+              <div className="text-xs space-y-1">
+                <div className="flex justify-between">
+                  <span style={{ color: '#5F6B7A' }}>Rubro:</span>
+                  <span style={{ color: '#172033' }}>{c.rubro}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span style={{ color: '#5F6B7A' }}>Vencimiento:</span>
+                  <span style={{ color: '#172033' }}>{new Date(c.vencimiento).toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span style={{ color: '#5F6B7A' }}>Vacantes Totales:</span>
+                  <span className="font-bold" style={{ color: '#172033' }}>{c.vacantes}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span style={{ color: '#5F6B7A' }}>Estudiantes Activos:</span>
+                  <span className="font-bold text-blue-600">{c.estudiantesActivos}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

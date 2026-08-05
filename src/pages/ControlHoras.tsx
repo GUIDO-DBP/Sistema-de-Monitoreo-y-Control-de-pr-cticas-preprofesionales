@@ -88,16 +88,16 @@ export default function ControlHoras() {
       )}
 
       {/* Metrics Header */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: 'Horas Aprobadas', val: `${resumen.aprobadas}h`, color: '#168A5B' },
           { label: 'Horas Pendientes', val: `${resumen.pendientes}h`, color: '#2563EB' },
           { label: 'Horas Observadas', val: `${resumen.observadas}h`, color: '#B7791F' },
           { label: 'Meta Global (320h)', val: `${resumen.porcentaje}%`, color: '#152A43' },
         ].map(m => (
-          <div key={m.label} className="bg-white p-4 rounded-2xl border" style={{ borderColor: '#DCE3EA' }}>
+          <div key={m.label} className="bg-white p-3 sm:p-4 rounded-2xl border" style={{ borderColor: '#DCE3EA' }}>
             <span className="text-xs font-medium" style={{ color: '#5F6B7A' }}>{m.label}</span>
-            <div className="text-2xl font-bold mt-1" style={{ color: m.color }}>{m.val}</div>
+            <div className="text-xl sm:text-2xl font-bold mt-1" style={{ color: m.color }}>{m.val}</div>
           </div>
         ))}
       </div>
@@ -123,47 +123,99 @@ export default function ControlHoras() {
             Cargando registros de horas desde la API…
           </div>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr style={{ backgroundColor: '#F4F7FA' }}>
-                {['Estudiante', 'Fecha', 'Horario', 'Pausa', 'Horas Netas', 'Actividad', 'Estado', 'Acciones'].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: '#5F6B7A' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr style={{ backgroundColor: '#F4F7FA' }}>
+                    {['Estudiante', 'Fecha', 'Horario', 'Pausa', 'Horas Netas', 'Actividad', 'Estado', 'Acciones'].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: '#5F6B7A' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(r => {
+                    const estNombre = r.estudiante?.usuario?.nombre || '—';
+                    const appEstado = r.estado === 'APROBADA' ? 'aprobada' : r.estado === 'OBSERVADA' ? 'observada' : 'pendiente';
+
+                    return (
+                      <tr key={r.id} className="border-t hover:bg-gray-50 transition-colors" style={{ borderColor: '#EDF2F7' }}>
+                        <td className="px-4 py-3 text-sm font-medium whitespace-nowrap" style={{ color: '#172033' }}>{estNombre}</td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{new Date(r.fecha).toLocaleDateString()}</td>
+                        <td className="px-4 py-3 text-xs font-mono whitespace-nowrap" style={{ color: '#172033' }}>{r.horaEntrada} - {r.horaSalida}</td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{r.minutosPausa} min</td>
+                        <td className="px-4 py-3 text-xs font-bold whitespace-nowrap" style={{ color: '#2563EB' }}>{r.horasRegistradas}h</td>
+                        <td className="px-4 py-3 text-xs max-w-xs truncate" style={{ color: '#5F6B7A' }}>{r.actividad}</td>
+                        <td className="px-4 py-3 whitespace-nowrap"><StatusChip estado={appEstado} /></td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            {r.estado !== 'APROBADA' && (
+                              <button onClick={() => handleValidar(r.id)} title="Validar Horas" className="px-3 py-1 rounded-lg text-xs font-semibold text-white transition-colors hover:bg-emerald-700" style={{ backgroundColor: '#168A5B' }}>
+                                Validar
+                              </button>
+                            )}
+                            {r.estado !== 'OBSERVADA' && (
+                              <button onClick={() => { setSelectedHora(r); setObservacionTxt(r.comentario || ''); }} title="Observar Horas" className="px-3 py-1 rounded-lg text-xs font-semibold text-white transition-colors hover:bg-amber-700" style={{ backgroundColor: '#B7791F' }}>
+                                Observar
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="md:hidden divide-y" style={{ borderColor: '#EDF2F7' }}>
               {filtered.map(r => {
                 const estNombre = r.estudiante?.usuario?.nombre || '—';
                 const appEstado = r.estado === 'APROBADA' ? 'aprobada' : r.estado === 'OBSERVADA' ? 'observada' : 'pendiente';
 
                 return (
-                  <tr key={r.id} className="border-t hover:bg-gray-50 transition-colors" style={{ borderColor: '#EDF2F7' }}>
-                    <td className="px-4 py-3 text-sm font-medium" style={{ color: '#172033' }}>{estNombre}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{new Date(r.fecha).toLocaleDateString()}</td>
-                    <td className="px-4 py-3 text-xs font-mono" style={{ color: '#172033' }}>{r.horaEntrada} - {r.horaSalida}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{r.minutosPausa} min</td>
-                    <td className="px-4 py-3 text-xs font-bold" style={{ color: '#2563EB' }}>{r.horasRegistradas}h</td>
-                    <td className="px-4 py-3 text-xs max-w-xs truncate" style={{ color: '#5F6B7A' }}>{r.actividad}</td>
-                    <td className="px-4 py-3"><StatusChip estado={appEstado} /></td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        {r.estado !== 'APROBADA' && (
-                          <button onClick={() => handleValidar(r.id)} title="Validar Horas" className="px-3 py-1 rounded-lg text-xs font-semibold text-white" style={{ backgroundColor: '#168A5B' }}>
-                            Validar
-                          </button>
-                        )}
-                        {r.estado !== 'OBSERVADA' && (
-                          <button onClick={() => { setSelectedHora(r); setObservacionTxt(r.comentario || ''); }} title="Observar Horas" className="px-3 py-1 rounded-lg text-xs font-semibold text-white" style={{ backgroundColor: '#B7791F' }}>
-                            Observar
-                          </button>
-                        )}
+                  <div key={r.id} className="p-4 space-y-3">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="font-medium text-sm leading-tight" style={{ color: '#172033' }}>{estNombre}</div>
+                      <StatusChip estado={appEstado} />
+                    </div>
+                    
+                    <div className="text-xs space-y-1">
+                      <div className="flex justify-between">
+                        <span style={{ color: '#5F6B7A' }}>Fecha:</span>
+                        <span style={{ color: '#172033' }}>{new Date(r.fecha).toLocaleDateString()}</span>
                       </div>
-                    </td>
-                  </tr>
+                      <div className="flex justify-between">
+                        <span style={{ color: '#5F6B7A' }}>Horario:</span>
+                        <span className="font-mono" style={{ color: '#172033' }}>{r.horaEntrada} - {r.horaSalida}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span style={{ color: '#5F6B7A' }}>Neto / Pausa:</span>
+                        <span className="font-bold" style={{ color: '#2563EB' }}>{r.horasRegistradas}h <span className="font-normal text-gray-500">({r.minutosPausa}m)</span></span>
+                      </div>
+                      <div className="pt-1">
+                        <span style={{ color: '#5F6B7A' }} className="block mb-0.5">Actividad:</span>
+                        <p className="italic text-gray-700 line-clamp-2">{r.actividad}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      {r.estado !== 'APROBADA' && (
+                        <button onClick={() => handleValidar(r.id)} className="flex-1 py-1.5 rounded-lg text-xs font-semibold text-white transition-colors hover:bg-emerald-700 flex justify-center items-center gap-1.5" style={{ backgroundColor: '#168A5B' }}>
+                          <CheckCircle size={14} /> Validar
+                        </button>
+                      )}
+                      {r.estado !== 'OBSERVADA' && (
+                        <button onClick={() => { setSelectedHora(r); setObservacionTxt(r.comentario || ''); }} className="flex-1 py-1.5 rounded-lg text-xs font-semibold text-white transition-colors hover:bg-amber-700 flex justify-center items-center gap-1.5" style={{ backgroundColor: '#B7791F' }}>
+                          <MessageSquare size={14} /> Observar
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
 
         {!loading && filtered.length === 0 && (
@@ -176,7 +228,7 @@ export default function ControlHoras() {
       {/* Observation Modal */}
       {selectedHora && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md space-y-4 border shadow-xl" style={{ borderColor: '#DCE3EA' }}>
+          <div className="bg-white rounded-2xl p-6 w-full sm:max-w-md space-y-4 border shadow-xl" style={{ borderColor: '#DCE3EA', maxWidth: 'calc(100vw - 32px)' }}>
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg" style={{ color: '#172033' }}>Observar Registro de Horas</h3>
               <button onClick={() => setSelectedHora(null)} style={{ color: '#5F6B7A' }}><X size={18} /></button>

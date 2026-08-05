@@ -36,9 +36,9 @@ export default function Seguimiento() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Seguimiento Individual de Practicantes</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Seguimiento Individual de Practicantes</h1>
           <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Matriz de control individual de horas, documentos y evaluación de desempeño.</p>
         </div>
       </div>
@@ -85,40 +85,82 @@ export default function Seguimiento() {
             Cargando matriz de seguimiento desde PostgreSQL…
           </div>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr style={{ backgroundColor: '#F4F7FA' }}>
-                {['Código', 'Estudiante', 'Escuela / Ciclo', 'Empresa Receptora', 'Horas (320h)', 'Documentos', 'Evaluación'].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: '#5F6B7A' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr style={{ backgroundColor: '#F4F7FA' }}>
+                    {['Código', 'Estudiante', 'Escuela / Ciclo', 'Empresa Receptora', 'Horas (320h)', 'Documentos', 'Evaluación'].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: '#5F6B7A' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(e => (
+                    <tr key={e.id} className="border-t hover:bg-gray-50 transition-colors" style={{ borderColor: '#EDF2F7' }}>
+                      <td className="px-4 py-3 text-xs font-mono whitespace-nowrap" style={{ color: '#5F6B7A' }}>{e.codigo}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm font-medium" style={{ color: '#172033' }}>{e.nombre}</div>
+                        <div className="text-xs" style={{ color: '#5F6B7A' }}>{e.email}</div>
+                      </td>
+                      <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{e.escuela} · Ciclo {e.ciclo}</td>
+                      <td className="px-4 py-3 text-xs font-medium whitespace-nowrap" style={{ color: '#172033' }}>{e.empresa}</td>
+                      <td className="px-4 py-3 text-xs whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#EDF2F7' }}>
+                            <div className="h-full rounded-full" style={{ width: `${e.porcentajeHoras}%`, backgroundColor: e.retraso ? '#B7791F' : '#168A5B' }} />
+                          </div>
+                          <span className="font-semibold">{e.horasAprobadas}h</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-xs font-semibold whitespace-nowrap" style={{ color: '#2563EB' }}>{e.docsProgreso}</td>
+                      <td className="px-4 py-3 text-xs whitespace-nowrap">
+                        <StatusChip estado={e.evaluacionEstado === 'COMPLETADA' ? 'aprobada' : 'pendiente'} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="md:hidden divide-y" style={{ borderColor: '#EDF2F7' }}>
               {filtered.map(e => (
-                <tr key={e.id} className="border-t hover:bg-gray-50 transition-colors" style={{ borderColor: '#EDF2F7' }}>
-                  <td className="px-4 py-3 text-xs font-mono" style={{ color: '#5F6B7A' }}>{e.codigo}</td>
-                  <td className="px-4 py-3">
-                    <div className="text-sm font-medium" style={{ color: '#172033' }}>{e.nombre}</div>
-                    <div className="text-xs" style={{ color: '#5F6B7A' }}>{e.email}</div>
-                  </td>
-                  <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{e.escuela} · Ciclo {e.ciclo}</td>
-                  <td className="px-4 py-3 text-xs font-medium" style={{ color: '#172033' }}>{e.empresa}</td>
-                  <td className="px-4 py-3 text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#EDF2F7' }}>
-                        <div className="h-full rounded-full" style={{ width: `${e.porcentajeHoras}%`, backgroundColor: e.retraso ? '#B7791F' : '#168A5B' }} />
-                      </div>
-                      <span className="font-semibold">{e.horasAprobadas}h</span>
+                <div key={e.id} className="p-4 space-y-3">
+                  <div className="flex justify-between items-start gap-2">
+                    <div>
+                      <div className="font-medium text-sm leading-tight" style={{ color: '#172033' }}>{e.nombre}</div>
+                      <div className="text-xs font-mono mt-0.5" style={{ color: '#5F6B7A' }}>{e.codigo}</div>
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-xs font-semibold" style={{ color: '#2563EB' }}>{e.docsProgreso}</td>
-                  <td className="px-4 py-3 text-xs">
                     <StatusChip estado={e.evaluacionEstado === 'COMPLETADA' ? 'aprobada' : 'pendiente'} />
-                  </td>
-                </tr>
+                  </div>
+                  
+                  <div className="text-xs space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <span style={{ color: '#5F6B7A' }}>Escuela / Ciclo:</span>
+                      <span style={{ color: '#172033' }}>{e.escuela} · Ciclo {e.ciclo}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span style={{ color: '#5F6B7A' }}>Empresa:</span>
+                      <span className="font-medium" style={{ color: '#172033' }}>{e.empresa}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span style={{ color: '#5F6B7A' }}>Documentos:</span>
+                      <span className="font-semibold" style={{ color: '#2563EB' }}>{e.docsProgreso}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span style={{ color: '#5F6B7A' }}>Horas (320h):</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#EDF2F7' }}>
+                          <div className="h-full rounded-full" style={{ width: `${e.porcentajeHoras}%`, backgroundColor: e.retraso ? '#B7791F' : '#168A5B' }} />
+                        </div>
+                        <span className="font-semibold">{e.horasAprobadas}h</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
 
         {!loading && filtered.length === 0 && (

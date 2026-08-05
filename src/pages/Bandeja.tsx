@@ -91,8 +91,8 @@ export default function Bandeja() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium"
             style={{ borderColor: '#DCE3EA', color: '#5F6B7A', backgroundColor: '#FFFFFF' }}>
             <Filter size={13} /> Filtros
@@ -113,7 +113,7 @@ export default function Bandeja() {
         </div>
 
         {/* View toggle */}
-        <div className="flex rounded-lg border overflow-hidden" style={{ borderColor: '#DCE3EA' }}>
+        <div className="flex rounded-lg border overflow-hidden w-full sm:w-auto" style={{ borderColor: '#DCE3EA' }}>
           {[
             { v: 'lista', icon: <List size={14} />, label: 'Lista' },
             { v: 'kanban', icon: <LayoutGrid size={14} />, label: 'Kanban' },
@@ -122,7 +122,7 @@ export default function Bandeja() {
             <button
               key={v}
               onClick={() => setView(v as 'lista' | 'kanban' | 'calendario')}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors"
               style={{
                 backgroundColor: view === v ? '#152A43' : '#FFFFFF',
                 color: view === v ? '#FFFFFF' : '#5F6B7A',
@@ -143,12 +143,13 @@ export default function Bandeja() {
 
       {/* Vista Kanban */}
       {view === 'kanban' && (
-        <div className="grid grid-cols-4 gap-4">
-          {kanbanCols.map(col => {
-            const colTasks = tareasBandeja.filter(t => t.estado === col);
-            const { bg, label } = estadoColors[col];
-            return (
-              <div key={col}>
+        <div className="overflow-x-auto pb-4">
+          <div className="flex gap-4 min-w-[800px]">
+            {kanbanCols.map(col => {
+              const colTasks = tareasBandeja.filter(t => t.estado === col);
+              const { bg, label } = estadoColors[col];
+              return (
+                <div key={col} className="w-72 flex-shrink-0">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: col === 'pendiente' ? '#B7791F' : col === 'en_revision' ? '#2563EB' : col === 'esperando' ? '#7A3DB8' : '#168A5B' }} />
                   <span className="text-sm font-semibold" style={{ color: '#172033' }}>{label}</span>
@@ -164,12 +165,14 @@ export default function Bandeja() {
             );
           })}
         </div>
+        </div>
       )}
 
       {/* Vista Calendario (simplificada) */}
       {view === 'calendario' && (
-        <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#DCE3EA' }}>
-          <div className="grid grid-cols-7 gap-1 mb-2">
+        <div className="bg-white rounded-2xl border p-4 sm:p-6 overflow-x-auto" style={{ borderColor: '#DCE3EA' }}>
+          <div className="min-w-[600px]">
+            <div className="grid grid-cols-7 gap-1 mb-2">
             {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
               <div key={d} className="text-center text-xs font-semibold py-2" style={{ color: '#5F6B7A' }}>{d}</div>
             ))}
@@ -196,6 +199,7 @@ export default function Bandeja() {
                 </div>
               );
             })}
+            </div>
           </div>
         </div>
       )}

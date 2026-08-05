@@ -52,9 +52,9 @@ export default function RolesPermisos() {
       </div>
 
       {/* Tarjetas de Roles */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {roles.map(r => (
-          <div key={r.name} className="p-6 rounded-2xl border bg-white border-slate-200 space-y-4">
+          <div key={r.name} className="p-5 sm:p-6 rounded-2xl border bg-white border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Shield size={20} style={{ color: r.badgeColor }} />

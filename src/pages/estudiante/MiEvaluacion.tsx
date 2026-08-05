@@ -65,25 +65,27 @@ export default function MiEvaluacion() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Mi Evaluación de Desempeño</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Mi Evaluación de Desempeño</h1>
           <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Resultados de la rúbrica cuantitativa evaluada por tu tutor empresarial.</p>
         </div>
-        <StatusChip estado={appEstado} />
+        <div className="self-start sm:self-auto">
+          <StatusChip estado={appEstado} />
+        </div>
       </div>
 
       {/* Global Grade Banner */}
-      <div className="bg-white p-6 rounded-2xl border flex items-center justify-between" style={{ borderColor: '#DCE3EA' }}>
+      <div className="bg-white p-5 sm:p-6 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4" style={{ borderColor: '#DCE3EA' }}>
         <div>
           <span className="text-xs font-semibold" style={{ color: '#5F6B7A' }}>NOTA GLOBAL DE DESEMPEÑO</span>
-          <div className="text-4xl font-bold mt-1" style={{ color: '#2563EB' }}>
+          <div className="text-3xl sm:text-4xl font-bold mt-1" style={{ color: '#2563EB' }}>
             {evaluacion.resultado ? `${evaluacion.resultado.toFixed(2)} / 5.0` : 'En proceso'}
           </div>
           <p className="text-xs mt-1" style={{ color: '#5F6B7A' }}>Tutor: {evaluacion.tutor?.usuario?.nombre || 'Ing. Carlos Medina'}</p>
         </div>
-        <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#EFF6FF', color: '#2563EB' }}>
-          <Star size={32} />
+        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center self-start sm:self-auto" style={{ backgroundColor: '#EFF6FF', color: '#2563EB' }}>
+          <Star className="w-6 h-6 sm:w-8 sm:h-8" />
         </div>
       </div>
 
@@ -113,12 +115,12 @@ export default function MiEvaluacion() {
       </div>
 
       {/* Feedback cards */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="p-5 rounded-2xl border bg-white" style={{ borderColor: '#A7F3D0', backgroundColor: '#F0FDF4' }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="p-4 sm:p-5 rounded-2xl border bg-white" style={{ borderColor: '#A7F3D0', backgroundColor: '#F0FDF4' }}>
           <h4 className="text-xs font-bold mb-2" style={{ color: '#168A5B' }}>FORTALEZAS DESTACADAS</h4>
           <p className="text-sm" style={{ color: '#172033' }}>{evaluacion.fortalezas || 'No se registraron comentarios específicos.'}</p>
         </div>
-        <div className="p-5 rounded-2xl border bg-white" style={{ borderColor: '#FDE68A', backgroundColor: '#FFFBEB' }}>
+        <div className="p-4 sm:p-5 rounded-2xl border bg-white" style={{ borderColor: '#FDE68A', backgroundColor: '#FFFBEB' }}>
           <h4 className="text-xs font-bold mb-2" style={{ color: '#B7791F' }}>ASPECTOS POR MEJORAR</h4>
           <p className="text-sm" style={{ color: '#172033' }}>{evaluacion.aspectosMejorar || 'No se registraron recomendaciones específicas.'}</p>
         </div>

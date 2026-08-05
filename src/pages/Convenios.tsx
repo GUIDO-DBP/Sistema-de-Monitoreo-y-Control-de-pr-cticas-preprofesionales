@@ -89,16 +89,16 @@ export default function Convenios() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Convenios</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Convenios</h1>
           <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Gestiona los acuerdos institucionales vigentes con empresas.</p>
         </div>
-        <div className="flex gap-2">
-          <div className="flex rounded-lg border overflow-hidden" style={{ borderColor: '#DCE3EA' }}>
-            {[{ v: 'tabla', label: 'Tabla' }, { v: 'mapa', label: 'Mapa de relaciones' }].map(({ v, label }) => (
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="flex rounded-lg border overflow-hidden w-full sm:w-auto" style={{ borderColor: '#DCE3EA' }}>
+            {[{ v: 'tabla', label: 'Tabla' }, { v: 'mapa', label: 'Mapa' }].map(({ v, label }) => (
               <button key={v} onClick={() => setView(v as 'tabla' | 'mapa')}
-                className="px-4 py-2 text-sm font-medium transition-colors"
+                className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium transition-colors text-center"
                 style={{ backgroundColor: view === v ? '#152A43' : '#FFFFFF', color: view === v ? '#FFFFFF' : '#5F6B7A' }}>
                 {label}
               </button>
@@ -106,7 +106,7 @@ export default function Convenios() {
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 w-full sm:w-auto rounded-lg text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
             style={{ backgroundColor: '#2563EB' }}>
             <Plus size={14} /> Nuevo convenio
           </button>
@@ -140,8 +140,8 @@ export default function Convenios() {
       )}
 
       {view === 'tabla' && (
-        <div className="grid gap-6" style={{ gridTemplateColumns: selected ? '1fr 0.5fr' : '1fr' }}>
-          <div className="rounded-2xl border bg-white overflow-hidden" style={{ borderColor: '#DCE3EA' }}>
+        <div className={`flex flex-col ${selected ? 'lg:grid lg:grid-cols-[1fr_0.5fr]' : ''} gap-6`}>
+          <div className="rounded-2xl border bg-white overflow-hidden order-2 lg:order-1" style={{ borderColor: '#DCE3EA' }}>
             {loading ? (
               <div className="p-8 text-center text-sm" style={{ color: '#5F6B7A' }}>
                 Cargando convenios desde la API…
@@ -151,43 +151,87 @@ export default function Convenios() {
                 No hay convenios registrados.
               </div>
             ) : (
-              <table className="w-full">
-                <thead>
-                  <tr style={{ backgroundColor: '#F4F7FA' }}>
-                    {['Código', 'Empresa', 'Rubro', 'Inicio', 'Vencimiento', 'Vacantes', 'Est. activos', 'Estado'].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: '#5F6B7A' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
+              <>
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr style={{ backgroundColor: '#F4F7FA' }}>
+                        {['Código', 'Empresa', 'Rubro', 'Inicio', 'Vencimiento', 'Vacantes', 'Est. activos', 'Estado'].map(h => (
+                          <th key={h} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: '#5F6B7A' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {convenios.map(c => {
+                        const empresaNombre = c.empresa?.nombre || '—';
+                        const appEstado = c.estado === 'ACTIVO' ? 'activo' : c.estado === 'POR_VENCER' ? 'por_vencer' : 'suspendido';
+                        return (
+                          <tr key={c.id}
+                            onClick={() => setSelected(c.id === selected ? null : c.id)}
+                            className="border-t hover:bg-gray-50 transition-colors cursor-pointer"
+                            style={{ borderColor: '#EDF2F7', backgroundColor: selected === c.id ? '#EFF6FF' : undefined }}>
+                            <td className="px-4 py-3 text-xs font-mono whitespace-nowrap" style={{ color: '#5F6B7A' }}>{c.codigo}</td>
+                            <td className="px-4 py-3 text-sm font-medium whitespace-nowrap" style={{ color: '#172033' }}>{empresaNombre}</td>
+                            <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{c.rubro}</td>
+                            <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{new Date(c.inicio).toLocaleDateString()}</td>
+                            <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: c.estado === 'POR_VENCER' ? '#B7791F' : '#5F6B7A', fontWeight: c.estado === 'POR_VENCER' ? 600 : 400 }}>
+                              {new Date(c.vencimiento).toLocaleDateString()}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-center whitespace-nowrap" style={{ color: '#5F6B7A' }}>{c.vacantes}</td>
+                            <td className="px-4 py-3 text-xs text-center whitespace-nowrap" style={{ color: '#5F6B7A' }}>{c.estudiantesActivos}</td>
+                            <td className="px-4 py-3 whitespace-nowrap"><StatusChip estado={appEstado} /></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="md:hidden divide-y" style={{ borderColor: '#EDF2F7' }}>
                   {convenios.map(c => {
                     const empresaNombre = c.empresa?.nombre || '—';
                     const appEstado = c.estado === 'ACTIVO' ? 'activo' : c.estado === 'POR_VENCER' ? 'por_vencer' : 'suspendido';
                     return (
-                      <tr key={c.id}
+                      <div key={c.id}
                         onClick={() => setSelected(c.id === selected ? null : c.id)}
-                        className="border-t hover:bg-gray-50 transition-colors cursor-pointer"
-                        style={{ borderColor: '#EDF2F7', backgroundColor: selected === c.id ? '#EFF6FF' : undefined }}>
-                        <td className="px-4 py-3 text-xs font-mono" style={{ color: '#5F6B7A' }}>{c.codigo}</td>
-                        <td className="px-4 py-3 text-sm font-medium" style={{ color: '#172033' }}>{empresaNombre}</td>
-                        <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{c.rubro}</td>
-                        <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{new Date(c.inicio).toLocaleDateString()}</td>
-                        <td className="px-4 py-3 text-xs" style={{ color: c.estado === 'POR_VENCER' ? '#B7791F' : '#5F6B7A', fontWeight: c.estado === 'POR_VENCER' ? 600 : 400 }}>
-                          {new Date(c.vencimiento).toLocaleDateString()}
-                        </td>
-                        <td className="px-4 py-3 text-xs text-center" style={{ color: '#5F6B7A' }}>{c.vacantes}</td>
-                        <td className="px-4 py-3 text-xs text-center" style={{ color: '#5F6B7A' }}>{c.estudiantesActivos}</td>
-                        <td className="px-4 py-3"><StatusChip estado={appEstado} /></td>
-                      </tr>
+                        className="p-4 space-y-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                        style={{ backgroundColor: selected === c.id ? '#EFF6FF' : undefined }}>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="text-sm font-medium" style={{ color: '#172033' }}>{empresaNombre}</div>
+                            <div className="text-xs font-mono mt-0.5" style={{ color: '#5F6B7A' }}>{c.codigo}</div>
+                          </div>
+                          <StatusChip estado={appEstado} />
+                        </div>
+                        
+                        <div className="text-xs space-y-1">
+                          <div className="flex justify-between">
+                            <span style={{ color: '#5F6B7A' }}>Rubro:</span>
+                            <span style={{ color: '#172033' }}>{c.rubro}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span style={{ color: '#5F6B7A' }}>Inicio:</span>
+                            <span style={{ color: '#172033' }}>{new Date(c.inicio).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span style={{ color: '#5F6B7A' }}>Vencimiento:</span>
+                            <span style={{ color: c.estado === 'POR_VENCER' ? '#B7791F' : '#172033', fontWeight: c.estado === 'POR_VENCER' ? 600 : 400 }}>{new Date(c.vencimiento).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span style={{ color: '#5F6B7A' }}>Vacantes / Activos:</span>
+                            <span style={{ color: '#172033' }}>{c.vacantes} / {c.estudiantesActivos}</span>
+                          </div>
+                        </div>
+                      </div>
                     );
                   })}
-                </tbody>
-              </table>
+                </div>
+              </>
             )}
           </div>
 
           {sel && (
-            <div className="bg-white rounded-2xl border p-5 space-y-4" style={{ borderColor: '#DCE3EA' }}>
+            <div className="bg-white rounded-2xl border p-5 space-y-4 order-1 lg:order-2 lg:sticky lg:top-4" style={{ borderColor: '#DCE3EA' }}>
               <div className="flex items-start justify-between">
                 <div>
                   <div className="text-xs font-mono" style={{ color: '#5F6B7A' }}>{sel.codigo}</div>
@@ -255,7 +299,7 @@ export default function Convenios() {
       {/* Modal Nuevo Convenio */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md space-y-4 shadow-xl border" style={{ borderColor: '#DCE3EA' }}>
+          <div className="bg-white rounded-2xl p-6 w-full sm:max-w-md space-y-4 shadow-xl border overflow-y-auto max-h-[90vh]" style={{ borderColor: '#DCE3EA', maxWidth: 'calc(100vw - 32px)' }}>
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold" style={{ color: '#172033' }}>Registrar Nuevo Convenio</h2>
               <button onClick={() => setShowModal(false)} style={{ color: '#5F6B7A' }}><X size={18} /></button>

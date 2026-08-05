@@ -81,106 +81,184 @@ function TutorDashboard({ navigate }: { navigate: any }) {
   return (
     <div className="space-y-6">
       {/* Saludo */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Buenos días, Ing. Carlos Medina</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Buenos días, Ing. Carlos Medina</h1>
           <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Gestiona el seguimiento de tus estudiantes asignados en AndesTech Solutions.</p>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {[
           { label: 'Estudiantes Asignados', val: postulaciones.length || 2, sub: 'En AndesTech Solutions' },
           { label: 'Horas Pendientes', val: horasPendientes.length, sub: 'Por validar' },
           { label: 'Evaluaciones Pendientes', val: evalsPendientes.length, sub: 'Requieren atención' },
           { label: 'Evaluaciones Completadas', val: evalsCompletadas.length, sub: 'Finalizadas' },
         ].map(kpi => (
-          <div key={kpi.label} className="p-5 rounded-2xl border bg-white space-y-1" style={{ borderColor: '#DCE3EA' }}>
-            <div className="text-xs font-medium" style={{ color: '#5F6B7A' }}>{kpi.label}</div>
-            <div className="text-2xl font-bold" style={{ color: '#172033' }}>{kpi.val}</div>
-            <div className="text-xs" style={{ color: '#2563EB' }}>{kpi.sub}</div>
+          <div key={kpi.label} className="p-5 rounded-2xl border bg-white space-y-1 min-w-0 overflow-hidden" style={{ borderColor: '#DCE3EA' }}>
+            <div className="text-xs font-medium truncate" style={{ color: '#5F6B7A' }}>{kpi.label}</div>
+            <div className="text-2xl font-bold truncate" style={{ color: '#172033' }}>{kpi.val}</div>
+            <div className="text-xs truncate" style={{ color: '#2563EB' }}>{kpi.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Secciones A: Estudiantes Asignados */}
       <div className="rounded-2xl border bg-white overflow-hidden" style={{ borderColor: '#DCE3EA' }}>
-        <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: '#EDF2F7' }}>
+        <div className="px-4 sm:px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: '#EDF2F7' }}>
           <h2 className="text-base font-semibold" style={{ color: '#172033' }}>Estudiantes asignados</h2>
         </div>
-        <table className="w-full">
-          <thead>
-            <tr style={{ backgroundColor: '#F4F7FA' }}>
-              {['Estudiante', 'Empresa', 'Área', 'Avance de Horas', 'Estado Evaluación', 'Acción'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: '#5F6B7A' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {postulaciones.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="p-4 text-center text-xs text-gray-500">No hay estudiantes asignados en este momento.</td>
+        
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr style={{ backgroundColor: '#F4F7FA' }}>
+                {['Estudiante', 'Empresa', 'Área', 'Avance de Horas', 'Estado Evaluación', 'Acción'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: '#5F6B7A' }}>{h}</th>
+                ))}
               </tr>
-            ) : (
-              postulaciones.map(p => (
-                <tr key={p.id} className="border-t hover:bg-gray-50" style={{ borderColor: '#EDF2F7' }}>
-                  <td className="px-4 py-3 text-xs font-medium" style={{ color: '#172033' }}>
-                    {p.estudiante?.usuario?.nombre || 'Estudiante'}
-                  </td>
-                  <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{p.empresa?.nombre || 'AndesTech Solutions'}</td>
-                  <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{p.area}</td>
-                  <td className="px-4 py-3 text-xs font-semibold" style={{ color: '#2563EB' }}>35 / 320 hrs</td>
-                  <td className="px-4 py-3">
-                    <span className="px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-800">Pendiente</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <button onClick={() => navigate('/tutor/evaluaciones')} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600">
-                      Evaluar
-                    </button>
-                  </td>
+            </thead>
+            <tbody>
+              {postulaciones.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-4 text-center text-xs text-gray-500">No hay estudiantes asignados en este momento.</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                postulaciones.map(p => (
+                  <tr key={p.id} className="border-t hover:bg-gray-50" style={{ borderColor: '#EDF2F7' }}>
+                    <td className="px-4 py-3 text-xs font-medium whitespace-nowrap" style={{ color: '#172033' }}>
+                      {p.estudiante?.usuario?.nombre || 'Estudiante'}
+                    </td>
+                    <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{p.empresa?.nombre || 'AndesTech Solutions'}</td>
+                    <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{p.area}</td>
+                    <td className="px-4 py-3 text-xs font-semibold whitespace-nowrap" style={{ color: '#2563EB' }}>35 / 320 hrs</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className="px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-800">Pendiente</span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <button onClick={() => navigate('/tutor/evaluaciones')} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+                        Evaluar
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="md:hidden divide-y" style={{ borderColor: '#EDF2F7' }}>
+          {postulaciones.length === 0 ? (
+            <div className="p-4 text-center text-xs text-gray-500">No hay estudiantes asignados en este momento.</div>
+          ) : (
+            postulaciones.map(p => (
+              <div key={p.id} className="p-4 space-y-3">
+                <div className="flex justify-between items-start gap-2">
+                  <div>
+                    <div className="text-sm font-medium" style={{ color: '#172033' }}>{p.estudiante?.usuario?.nombre || 'Estudiante'}</div>
+                    <div className="text-xs mt-0.5" style={{ color: '#5F6B7A' }}>{p.empresa?.nombre || 'AndesTech Solutions'}</div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] bg-yellow-100 text-yellow-800 font-medium shrink-0">Pendiente</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="block" style={{ color: '#5F6B7A' }}>Área</span>
+                    <span className="font-medium" style={{ color: '#172033' }}>{p.area}</span>
+                  </div>
+                  <div>
+                    <span className="block" style={{ color: '#5F6B7A' }}>Avance</span>
+                    <span className="font-semibold" style={{ color: '#2563EB' }}>35 / 320 hrs</span>
+                  </div>
+                </div>
+
+                <button onClick={() => navigate('/tutor/evaluaciones')} className="w-full mt-2 text-xs font-medium px-3 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors flex justify-center items-center">
+                  Evaluar
+                </button>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Secciones B: Horas Pendientes de Validación */}
       <div className="rounded-2xl border bg-white overflow-hidden" style={{ borderColor: '#DCE3EA' }}>
-        <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: '#EDF2F7' }}>
+        <div className="px-4 sm:px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: '#EDF2F7' }}>
           <h2 className="text-base font-semibold" style={{ color: '#172033' }}>Horas pendientes de validación</h2>
         </div>
-        <table className="w-full">
-          <thead>
-            <tr style={{ backgroundColor: '#F4F7FA' }}>
-              {['Estudiante', 'Fecha', 'Horas', 'Actividad', 'Evidencia', 'Acciones'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: '#5F6B7A' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {horasPendientes.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="p-4 text-center text-xs text-gray-500">No hay registros de horas pendientes por validar.</td>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr style={{ backgroundColor: '#F4F7FA' }}>
+                {['Estudiante', 'Fecha', 'Horas', 'Actividad', 'Evidencia', 'Acciones'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: '#5F6B7A' }}>{h}</th>
+                ))}
               </tr>
-            ) : (
-              horasPendientes.map(h => (
-                <tr key={h.id} className="border-t hover:bg-gray-50" style={{ borderColor: '#EDF2F7' }}>
-                  <td className="px-4 py-3 text-xs font-medium" style={{ color: '#172033' }}>{h.estudiante?.usuario?.nombre || 'Estudiante'}</td>
-                  <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{new Date(h.fecha).toLocaleDateString()}</td>
-                  <td className="px-4 py-3 text-xs font-bold" style={{ color: '#172033' }}>{h.horasRegistradas}h</td>
-                  <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{h.actividad}</td>
-                  <td className="px-4 py-3 text-xs" style={{ color: '#168A5B' }}>Conforme</td>
-                  <td className="px-4 py-3 flex gap-2">
-                    <button onClick={() => handleValidarHora(h.id)} className="px-2.5 py-1 text-xs rounded bg-green-100 text-green-700 font-medium">Validar</button>
-                    <button onClick={() => handleObservarHora(h.id)} className="px-2.5 py-1 text-xs rounded bg-red-100 text-red-700 font-medium">Observar</button>
-                  </td>
+            </thead>
+            <tbody>
+              {horasPendientes.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-4 text-center text-xs text-gray-500">No hay registros de horas pendientes por validar.</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                horasPendientes.map(h => (
+                  <tr key={h.id} className="border-t hover:bg-gray-50" style={{ borderColor: '#EDF2F7' }}>
+                    <td className="px-4 py-3 text-xs font-medium whitespace-nowrap" style={{ color: '#172033' }}>{h.estudiante?.usuario?.nombre || 'Estudiante'}</td>
+                    <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{new Date(h.fecha).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-xs font-bold whitespace-nowrap" style={{ color: '#172033' }}>{h.horasRegistradas}h</td>
+                    <td className="px-4 py-3 text-xs min-w-[200px]" style={{ color: '#5F6B7A' }}>{h.actividad}</td>
+                    <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#168A5B' }}>Conforme</td>
+                    <td className="px-4 py-3 flex gap-2 whitespace-nowrap">
+                      <button onClick={() => handleValidarHora(h.id)} className="px-2.5 py-1 text-xs rounded bg-green-100 text-green-700 font-medium hover:bg-green-200 transition-colors">Validar</button>
+                      <button onClick={() => handleObservarHora(h.id)} className="px-2.5 py-1 text-xs rounded bg-red-100 text-red-700 font-medium hover:bg-red-200 transition-colors">Observar</button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="md:hidden divide-y" style={{ borderColor: '#EDF2F7' }}>
+          {horasPendientes.length === 0 ? (
+            <div className="p-4 text-center text-xs text-gray-500">No hay registros de horas pendientes por validar.</div>
+          ) : (
+            horasPendientes.map(h => (
+              <div key={h.id} className="p-4 space-y-3">
+                <div className="flex justify-between items-start gap-2">
+                  <div className="text-sm font-medium" style={{ color: '#172033' }}>{h.estudiante?.usuario?.nombre || 'Estudiante'}</div>
+                  <div className="text-xs font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700">{h.horasRegistradas} hrs</div>
+                </div>
+                
+                <div className="text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span style={{ color: '#5F6B7A' }}>Fecha:</span>
+                    <span style={{ color: '#172033' }}>{new Date(h.fecha).toLocaleDateString()}</span>
+                  </div>
+                  <div>
+                    <span className="block" style={{ color: '#5F6B7A' }}>Actividad:</span>
+                    <span className="block mt-0.5" style={{ color: '#172033' }}>{h.actividad}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1">
+                    <span style={{ color: '#5F6B7A' }}>Evidencia:</span>
+                    <span className="font-medium" style={{ color: '#168A5B' }}>Conforme</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => handleValidarHora(h.id)} className="flex-1 py-2 text-xs rounded-lg bg-green-100 text-green-700 font-medium hover:bg-green-200 transition-colors">Validar</button>
+                  <button onClick={() => handleObservarHora(h.id)} className="flex-1 py-2 text-xs rounded-lg bg-red-100 text-red-700 font-medium hover:bg-red-200 transition-colors">Observar</button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
@@ -212,40 +290,40 @@ function AdminDashboard({ navigate }: { navigate: any }) {
   return (
     <div className="space-y-6">
       {/* Saludo */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Buenos días, Administrador</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Buenos días, Administrador</h1>
           <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Supervisa la configuración, seguridad y disponibilidad del SMCPP.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <button onClick={() => navigate('/usuarios')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
+            className="flex items-center justify-center gap-2 px-4 py-2 w-full sm:w-auto rounded-lg text-sm font-semibold text-white"
             style={{ backgroundColor: '#2563EB' }}>
-            <Users size={14} /> Gestionar usuarios
+            <Users size={16} /> Gestionar usuarios
           </button>
         </div>
       </div>
 
       {/* Indicadores */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {[
           { label: 'Usuarios Activos', val: activos, sub: 'Total registrado' },
           { label: 'Usuarios Inactivos', val: inactivos, sub: 'Deshabilitados' },
           { label: 'Operaciones Auditadas', val: 128, sub: 'Logs en PostgreSQL' },
           { label: 'Estado del Sistema', val: '100% OK', sub: 'PostgreSQL & Express API' },
         ].map(kpi => (
-          <div key={kpi.label} className="p-5 rounded-2xl border bg-white space-y-1" style={{ borderColor: '#DCE3EA' }}>
-            <div className="text-xs font-medium" style={{ color: '#5F6B7A' }}>{kpi.label}</div>
-            <div className="text-2xl font-bold" style={{ color: '#172033' }}>{kpi.val}</div>
-            <div className="text-xs" style={{ color: '#168A5B' }}>{kpi.sub}</div>
+          <div key={kpi.label} className="p-5 rounded-2xl border bg-white space-y-1 min-w-0 overflow-hidden" style={{ borderColor: '#DCE3EA' }}>
+            <div className="text-xs font-medium truncate" style={{ color: '#5F6B7A' }}>{kpi.label}</div>
+            <div className="text-2xl font-bold truncate" style={{ color: '#172033' }}>{kpi.val}</div>
+            <div className="text-xs truncate" style={{ color: '#168A5B' }}>{kpi.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Grid Distribución & Estado */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Distribución por rol */}
-        <div className="p-6 rounded-2xl border bg-white" style={{ borderColor: '#DCE3EA' }}>
+        <div className="p-4 sm:p-6 rounded-2xl border bg-white" style={{ borderColor: '#DCE3EA' }}>
           <h2 className="text-base font-semibold mb-4" style={{ color: '#172033' }}>Distribución de usuarios por rol</h2>
           <div className="space-y-3">
             {[
@@ -255,15 +333,15 @@ function AdminDashboard({ navigate }: { navigate: any }) {
               { role: 'Tutores Empresariales', count: countTutor, color: '#D97706' },
             ].map(r => (
               <div key={r.role} className="flex items-center justify-between text-xs">
-                <span className="font-medium" style={{ color: '#172033' }}>{r.role}</span>
-                <span className="px-2.5 py-1 rounded-full font-bold text-white" style={{ backgroundColor: r.color }}>{r.count}</span>
+                <span className="font-medium truncate pr-2" style={{ color: '#172033' }}>{r.role}</span>
+                <span className="px-2.5 py-1 rounded-full font-bold text-white shrink-0" style={{ backgroundColor: r.color }}>{r.count}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Estado de infraestructura */}
-        <div className="p-6 rounded-2xl border bg-white" style={{ borderColor: '#DCE3EA' }}>
+        <div className="p-4 sm:p-6 rounded-2xl border bg-white" style={{ borderColor: '#DCE3EA' }}>
           <h2 className="text-base font-semibold mb-4" style={{ color: '#172033' }}>Estado de infraestructura & servicios</h2>
           <div className="space-y-3">
             {[
@@ -272,7 +350,7 @@ function AdminDashboard({ navigate }: { navigate: any }) {
               { service: 'Autenticación JWT & Bcrypt', status: 'ACTIVO (8h expiration)' },
               { service: 'Almacenamiento Multer PDF', status: 'ACTIVO (uploads/)' },
             ].map(s => (
-              <div key={s.service} className="flex items-center justify-between text-xs">
+              <div key={s.service} className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1 sm:gap-2">
                 <span className="font-medium" style={{ color: '#172033' }}>{s.service}</span>
                 <span className="text-green-600 font-semibold">{s.status}</span>
               </div>
@@ -312,52 +390,85 @@ function CoordinatorDashboard({ navigate }: { navigate: any }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Buenas tardes, Coordinador</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Buenas tardes, Coordinador</h1>
           <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Estado general de las prácticas preprofesionales en PostgreSQL.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {[
           { label: 'Estudiantes Activos', val: totalEstudiantes, sub: 'Registrados en el sistema' },
           { label: 'Convenios Activos', val: conveniosActivos, sub: 'Empresas receptoras' },
           { label: 'Horas Totales Aprobadas', val: `${horasTotales}h`, sub: 'En el periodo actual' },
           { label: 'Evaluaciones Completadas', val: evaluacionesCompletadas, sub: 'Fichas evaluadas' },
         ].map(kpi => (
-          <div key={kpi.label} className="p-5 rounded-2xl border bg-white space-y-1" style={{ borderColor: '#DCE3EA' }}>
-            <div className="text-xs font-medium" style={{ color: '#5F6B7A' }}>{kpi.label}</div>
-            <div className="text-2xl font-bold" style={{ color: '#172033' }}>{kpi.val}</div>
-            <div className="text-xs" style={{ color: '#168A5B' }}>{kpi.sub}</div>
+          <div key={kpi.label} className="p-5 rounded-2xl border bg-white space-y-1 min-w-0 overflow-hidden" style={{ borderColor: '#DCE3EA' }}>
+            <div className="text-xs font-medium truncate" style={{ color: '#5F6B7A' }}>{kpi.label}</div>
+            <div className="text-2xl font-bold truncate" style={{ color: '#172033' }}>{kpi.val}</div>
+            <div className="text-xs truncate" style={{ color: '#168A5B' }}>{kpi.sub}</div>
           </div>
         ))}
       </div>
 
       <div className="rounded-2xl border bg-white overflow-hidden" style={{ borderColor: '#DCE3EA' }}>
-        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: '#EDF2F7' }}>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b" style={{ borderColor: '#EDF2F7' }}>
           <h2 className="text-base font-semibold" style={{ color: '#172033' }}>Casos de postulación en tiempo real</h2>
         </div>
-        <table className="w-full">
-          <thead>
-            <tr style={{ backgroundColor: '#F4F7FA' }}>
-              {['Código / Estudiante', 'Empresa', 'Horas Semanales', 'Estado', 'Responsable'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: '#5F6B7A' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {postulaciones.slice(0, 5).map(p => (
-              <tr key={p.id} className="border-t hover:bg-gray-50" style={{ borderColor: '#EDF2F7' }}>
-                <td className="px-4 py-3 text-xs font-medium" style={{ color: '#172033' }}>{p.estudiante?.usuario?.nombre || 'Estudiante'} ({p.codigo})</td>
-                <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{p.empresa?.nombre || '—'}</td>
-                <td className="px-4 py-3 text-xs">{p.horasSemanales} hrs/sem</td>
-                <td className="px-4 py-3"><StatusChip estado={p.estado.toLowerCase() as any} /></td>
-                <td className="px-4 py-3 text-xs text-gray-500">{p.responsable?.nombre || 'Coord. Carlos Ramos'}</td>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr style={{ backgroundColor: '#F4F7FA' }}>
+                {['Código / Estudiante', 'Empresa', 'Horas Semanales', 'Estado', 'Responsable'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: '#5F6B7A' }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {postulaciones.slice(0, 5).map(p => (
+                <tr key={p.id} className="border-t hover:bg-gray-50" style={{ borderColor: '#EDF2F7' }}>
+                  <td className="px-4 py-3 text-xs font-medium whitespace-nowrap" style={{ color: '#172033' }}>{p.estudiante?.usuario?.nombre || 'Estudiante'} ({p.codigo})</td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{p.empresa?.nombre || '—'}</td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap">{p.horasSemanales} hrs/sem</td>
+                  <td className="px-4 py-3 whitespace-nowrap"><StatusChip estado={p.estado.toLowerCase() as any} /></td>
+                  <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{p.responsable?.nombre || 'Coord. Carlos Ramos'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="md:hidden divide-y" style={{ borderColor: '#EDF2F7' }}>
+          {postulaciones.length === 0 ? (
+             <div className="p-4 text-center text-xs text-gray-500">No hay postulaciones registradas.</div>
+          ) : (
+            postulaciones.slice(0, 5).map(p => (
+              <div key={p.id} className="p-4 space-y-2">
+                <div className="flex justify-between items-start gap-2">
+                  <div>
+                    <div className="text-sm font-medium" style={{ color: '#172033' }}>{p.estudiante?.usuario?.nombre || 'Estudiante'}</div>
+                    <div className="text-xs mt-0.5" style={{ color: '#5F6B7A' }}>{p.codigo}</div>
+                  </div>
+                  <div className="shrink-0"><StatusChip estado={p.estado.toLowerCase() as any} /></div>
+                </div>
+                <div className="text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span style={{ color: '#5F6B7A' }}>Empresa:</span>
+                    <span className="font-medium truncate max-w-[150px]" style={{ color: '#172033' }}>{p.empresa?.nombre || '—'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span style={{ color: '#5F6B7A' }}>Horas:</span>
+                    <span className="font-medium" style={{ color: '#172033' }}>{p.horasSemanales} hrs/sem</span>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
@@ -387,21 +498,21 @@ function StudentDashboard() {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Hola, Ana</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Hola, Ana</h1>
           <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Tu práctica se encuentra registrada en PostgreSQL.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <button onClick={() => navigate('/mis-horas')}
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-white" style={{ backgroundColor: '#2563EB' }}>
+            className="w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-semibold text-white" style={{ backgroundColor: '#2563EB' }}>
             Registrar horas
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
-        <div className="p-6 rounded-2xl border bg-white" style={{ borderColor: '#DCE3EA' }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="p-4 sm:p-6 rounded-2xl border bg-white" style={{ borderColor: '#DCE3EA' }}>
           <h2 className="text-base font-semibold mb-1" style={{ color: '#172033' }}>Progreso real de horas</h2>
           <p className="text-xs mb-4" style={{ color: '#5F6B7A' }}>Registros aprobados por el tutor</p>
           <div className="flex items-end gap-2 mb-3">
@@ -417,7 +528,7 @@ function StudentDashboard() {
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl border bg-white" style={{ borderColor: '#DCE3EA' }}>
+        <div className="p-4 sm:p-6 rounded-2xl border bg-white" style={{ borderColor: '#DCE3EA' }}>
           <h2 className="text-base font-semibold mb-4" style={{ color: '#172033' }}>Información de tu práctica</h2>
           <div className="space-y-3">
             {[
@@ -427,9 +538,9 @@ function StudentDashboard() {
               ['Modalidad', postulacion?.modalidad || 'Híbrido'],
               ['Horas Semanales', `${postulacion?.horasSemanales || 30} hrs/semana`],
             ].map(([k, v]) => (
-              <div key={k} className="flex items-start justify-between gap-4">
-                <span className="text-xs flex-shrink-0" style={{ color: '#5F6B7A' }}>{k}</span>
-                <span className="text-xs font-medium text-right" style={{ color: '#172033' }}>{v}</span>
+              <div key={k} className="flex flex-col sm:flex-row sm:items-start justify-between sm:gap-4 gap-1 border-b sm:border-b-0 pb-2 sm:pb-0 last:border-b-0">
+                <span className="text-xs flex-shrink-0 font-medium sm:font-normal" style={{ color: '#5F6B7A' }}>{k}</span>
+                <span className="text-xs sm:font-medium sm:text-right" style={{ color: '#172033' }}>{v}</span>
               </div>
             ))}
           </div>

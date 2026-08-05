@@ -56,28 +56,28 @@ export default function Configuracion() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Configuración</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Configuración</h1>
           <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Parámetros del sistema SMCPP para el periodo académico vigente.</p>
         </div>
         <button
           onClick={handleSave}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
           style={{ backgroundColor: saved ? '#168A5B' : '#2563EB', color: '#FFFFFF' }}>
           {saved ? <CheckCircle size={14} /> : <Save size={14} />}
           {saved ? 'Cambios guardados' : 'Guardar cambios'}
         </button>
       </div>
 
-      <div className="grid gap-6" style={{ gridTemplateColumns: '220px 1fr' }}>
+      <div className="flex flex-col md:flex-row gap-6">
         {/* Sidebar nav */}
-        <div className="bg-white rounded-2xl border p-3 h-fit" style={{ borderColor: '#DCE3EA' }}>
+        <div className="w-full md:w-[220px] bg-white rounded-2xl border p-3 h-fit flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible space-x-2 md:space-x-0" style={{ borderColor: '#DCE3EA' }}>
           {sections.map(s => (
             <button
               key={s.key}
               onClick={() => setActiveSection(s.key)}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-medium text-left transition-all"
+              className="flex-shrink-0 md:w-full flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-lg mb-0 md:mb-0.5 text-sm font-medium text-center md:text-left transition-all"
               style={{
                 backgroundColor: activeSection === s.key ? 'rgba(37,99,235,0.1)' : 'transparent',
                 color: activeSection === s.key ? '#2563EB' : '#5F6B7A',
@@ -89,7 +89,7 @@ export default function Configuracion() {
         </div>
 
         {/* Content panels */}
-        <div className="bg-white rounded-2xl border p-6 space-y-6" style={{ borderColor: '#DCE3EA' }}>
+        <div className="flex-1 bg-white rounded-2xl border p-4 sm:p-6 space-y-6 min-w-0" style={{ borderColor: '#DCE3EA' }}>
 
           {activeSection === 'periodo' && (
             <>
@@ -97,7 +97,7 @@ export default function Configuracion() {
                 <h2 className="text-base font-semibold mb-1" style={{ color: '#172033' }}>Periodo académico</h2>
                 <p className="text-xs" style={{ color: '#5F6B7A' }}>Configura el periodo académico activo del sistema.</p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium mb-1.5" style={{ color: '#172033' }}>Nombre del periodo</label>
                   <input value={periodo.nombre} onChange={e => setPeriodo(p => ({ ...p, nombre: e.target.value }))}
@@ -197,7 +197,7 @@ export default function Configuracion() {
                 <p className="text-xs" style={{ color: '#5F6B7A' }}>Parámetros para el registro y validación de horas.</p>
               </div>
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-medium mb-1.5" style={{ color: '#172033' }}>Horas máximas por semana</label>
                     <input type="number" value={horas.horasSemana}
@@ -243,7 +243,7 @@ export default function Configuracion() {
                 <p className="text-xs" style={{ color: '#5F6B7A' }}>Restricciones y comportamiento para la carga de archivos.</p>
               </div>
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-medium mb-1.5" style={{ color: '#172033' }}>Formatos permitidos</label>
                     <input value={docs.formatosPermitidos}
@@ -307,7 +307,7 @@ export default function Configuracion() {
                 </div>
                 <div className="p-4 rounded-xl border" style={{ backgroundColor: '#F4F7FA', borderColor: '#DCE3EA' }}>
                   <div className="text-xs font-semibold mb-3" style={{ color: '#5F6B7A' }}>POLÍTICA DE SESIÓN</div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
                       ['Duración de sesión', '8 horas'],
                       ['Intentos fallidos hasta bloqueo', '5 intentos'],

@@ -96,14 +96,14 @@ export default function MisHoras() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Mis Horas de Práctica</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Mis Horas de Práctica</h1>
           <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Registra tus jornadas diarias de práctica para completar tu meta de 320 horas.</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors hover:bg-blue-700"
           style={{ backgroundColor: '#2563EB' }}>
           <Plus size={16} /> Registrar Jornada
         </button>
@@ -143,38 +143,84 @@ export default function MisHoras() {
 
       {/* Table */}
       <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: '#DCE3EA' }}>
-        <table className="w-full">
-          <thead>
-            <tr style={{ backgroundColor: '#F4F7FA' }}>
-              {['Fecha', 'Entrada - Salida', 'Pausa', 'Horas Netas', 'Actividad', 'Estado', ''].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: '#5F6B7A' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {registros.map(r => {
-              const appEstado = r.estado === 'APROBADA' ? 'aprobada' : r.estado === 'OBSERVADA' ? 'observada' : 'pendiente';
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr style={{ backgroundColor: '#F4F7FA' }}>
+                {['Fecha', 'Entrada - Salida', 'Pausa', 'Horas Netas', 'Actividad', 'Estado', ''].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: '#5F6B7A' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {registros.map(r => {
+                const appEstado = r.estado === 'APROBADA' ? 'aprobada' : r.estado === 'OBSERVADA' ? 'observada' : 'pendiente';
 
-              return (
-                <tr key={r.id} className="border-t hover:bg-gray-50 transition-colors" style={{ borderColor: '#EDF2F7' }}>
-                  <td className="px-4 py-3 text-sm font-medium" style={{ color: '#172033' }}>{new Date(r.fecha).toLocaleDateString()}</td>
-                  <td className="px-4 py-3 text-xs font-mono" style={{ color: '#5F6B7A' }}>{r.horaEntrada} - {r.horaSalida}</td>
-                  <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{r.minutosPausa} min</td>
-                  <td className="px-4 py-3 text-xs font-bold" style={{ color: '#2563EB' }}>{r.horasRegistradas}h</td>
-                  <td className="px-4 py-3 text-xs max-w-xs truncate" style={{ color: '#5F6B7A' }}>{r.actividad}</td>
-                  <td className="px-4 py-3"><StatusChip estado={appEstado} /></td>
-                  <td className="px-4 py-3">
+                return (
+                  <tr key={r.id} className="border-t hover:bg-gray-50 transition-colors" style={{ borderColor: '#EDF2F7' }}>
+                    <td className="px-4 py-3 text-sm font-medium whitespace-nowrap" style={{ color: '#172033' }}>{new Date(r.fecha).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-xs font-mono whitespace-nowrap" style={{ color: '#5F6B7A' }}>{r.horaEntrada} - {r.horaSalida}</td>
+                    <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{r.minutosPausa} min</td>
+                    <td className="px-4 py-3 text-xs font-bold whitespace-nowrap" style={{ color: '#2563EB' }}>{r.horasRegistradas}h</td>
+                    <td className="px-4 py-3 text-xs max-w-xs truncate" style={{ color: '#5F6B7A' }}>{r.actividad}</td>
+                    <td className="px-4 py-3 whitespace-nowrap"><StatusChip estado={appEstado} /></td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {r.estado === 'PENDIENTE' && (
+                        <button onClick={() => handleEliminar(r.id)} className="p-1 text-red-500 hover:bg-red-50 rounded" title="Eliminar registro">
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="md:hidden divide-y" style={{ borderColor: '#EDF2F7' }}>
+          {registros.map(r => {
+            const appEstado = r.estado === 'APROBADA' ? 'aprobada' : r.estado === 'OBSERVADA' ? 'observada' : 'pendiente';
+            return (
+              <div key={r.id} className="p-4 space-y-3">
+                <div className="flex justify-between items-start gap-2">
+                  <div>
+                    <div className="font-medium text-sm" style={{ color: '#172033' }}>
+                      {new Date(r.fecha).toLocaleDateString()}
+                    </div>
+                    <div className="text-xs font-mono mt-0.5" style={{ color: '#5F6B7A' }}>
+                      {r.horaEntrada} - {r.horaSalida}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <StatusChip estado={appEstado} />
                     {r.estado === 'PENDIENTE' && (
-                      <button onClick={() => handleEliminar(r.id)} className="p-1 text-red-500 hover:bg-red-50 rounded" title="Eliminar registro">
+                      <button onClick={() => handleEliminar(r.id)} className="p-1 text-red-500 hover:bg-red-50 rounded bg-red-50" title="Eliminar registro">
                         <Trash2 size={14} />
                       </button>
                     )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                  </div>
+                </div>
+                
+                <div className="text-xs space-y-1.5 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                  <div className="flex justify-between">
+                    <span style={{ color: '#5F6B7A' }}>Pausa:</span>
+                    <span style={{ color: '#172033' }}>{r.minutosPausa} min</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span style={{ color: '#5F6B7A' }}>Horas Netas:</span>
+                    <span className="font-bold" style={{ color: '#2563EB' }}>{r.horasRegistradas}h</span>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#5F6B7A' }}>Actividad Realizada</div>
+                  <div className="text-xs leading-relaxed" style={{ color: '#172033' }}>{r.actividad}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
         {registros.length === 0 && (
           <div className="py-12 text-center text-sm" style={{ color: '#5F6B7A' }}>

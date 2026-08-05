@@ -174,7 +174,7 @@ export default function Login({ onLogin }: LoginProps) {
       </div>
 
       {/* Right panel */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-8 bg-white">
         <div style={{ width: '100%', maxWidth: 400 }}>
           <div className="mb-8">
             <h2 className="text-2xl font-semibold mb-1" style={{ color: '#172033' }}>Bienvenido al SMCPP</h2>

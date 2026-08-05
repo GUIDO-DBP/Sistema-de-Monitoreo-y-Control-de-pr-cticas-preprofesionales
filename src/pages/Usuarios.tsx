@@ -93,14 +93,14 @@ export default function Usuarios() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Gestión de Usuarios</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Gestión de Usuarios</h1>
           <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Administra roles, accesos y credenciales del sistema SMCPP.</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+          className="flex items-center justify-center gap-2 px-4 py-2 w-full sm:w-auto rounded-lg text-sm font-semibold text-white transition-colors hover:bg-blue-700"
           style={{ backgroundColor: '#2563EB' }}>
           <Plus size={16} /> Crear usuario
         </button>
@@ -119,8 +119,8 @@ export default function Usuarios() {
       )}
 
       {/* Toolbar */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-xs">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="relative flex-1 sm:max-w-xs">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#5F6B7A' }} />
           <input
             className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border outline-none"
@@ -133,7 +133,7 @@ export default function Usuarios() {
         <select
           value={rolFilter}
           onChange={e => setRolFilter(e.target.value as any)}
-          className="px-3 py-2 rounded-lg border text-sm"
+          className="w-full sm:w-auto px-3 py-2 rounded-lg border text-sm"
           style={{ borderColor: '#DCE3EA', color: '#5F6B7A' }}
         >
           <option value="TODOS">Todos los roles</option>
@@ -151,53 +151,103 @@ export default function Usuarios() {
             Cargando usuarios desde PostgreSQL…
           </div>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr style={{ backgroundColor: '#F4F7FA' }}>
-                {['Usuario', 'Correo', 'Rol', 'Estado', 'Registro', 'Acciones'].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: '#5F6B7A' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr style={{ backgroundColor: '#F4F7FA' }}>
+                    {['Usuario', 'Correo', 'Rol', 'Estado', 'Registro', 'Acciones'].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: '#5F6B7A' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(u => (
+                    <tr key={u.id} className="border-t hover:bg-gray-50 transition-colors" style={{ borderColor: '#EDF2F7' }}>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm font-medium" style={{ color: '#172033' }}>{u.nombre}</div>
+                        {u.estudiante && <div className="text-xs text-gray-400 font-mono">{u.estudiante.codigo}</div>}
+                      </td>
+                      <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{u.email}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: u.rol === 'ADMINISTRADOR' ? '#FEE2E2' : u.rol === 'COORDINADOR' ? '#EFF6FF' : '#F4F7FA', color: '#172033' }}>
+                          {u.rol}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <StatusChip estado={u.activo ? 'activo' : 'suspendido'} />
+                      </td>
+                      <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{new Date(u.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleToggleEstado(u)}
+                            title={u.activo ? 'Desactivar usuario' : 'Activar usuario'}
+                            className={`p-1.5 rounded-lg border text-white ${u.activo ? 'bg-amber-600 hover:bg-amber-700' : 'bg-green-600 hover:bg-green-700'} transition-colors`}
+                          >
+                            {u.activo ? <UserX size={14} /> : <UserCheck size={14} />}
+                          </button>
+                          <button
+                            onClick={() => handleResetPassword(u)}
+                            title="Restablecer Contraseña"
+                            className="p-1.5 rounded-lg border text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                          >
+                            <KeyRound size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden divide-y" style={{ borderColor: '#EDF2F7' }}>
               {filtered.map(u => (
-                <tr key={u.id} className="border-t hover:bg-gray-50 transition-colors" style={{ borderColor: '#EDF2F7' }}>
-                  <td className="px-4 py-3">
-                    <div className="text-sm font-medium" style={{ color: '#172033' }}>{u.nombre}</div>
-                    {u.estudiante && <div className="text-xs text-gray-400 font-mono">{u.estudiante.codigo}</div>}
-                  </td>
-                  <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{u.email}</td>
-                  <td className="px-4 py-3">
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: u.rol === 'ADMINISTRADOR' ? '#FEE2E2' : u.rol === 'COORDINADOR' ? '#EFF6FF' : '#F4F7FA', color: '#172033' }}>
-                      {u.rol}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusChip estado={u.activo ? 'activo' : 'suspendido'} />
-                  </td>
-                  <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{new Date(u.createdAt).toLocaleDateString()}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleToggleEstado(u)}
-                        title={u.activo ? 'Desactivar usuario' : 'Activar usuario'}
-                        className={`p-1.5 rounded-lg border text-white ${u.activo ? 'bg-amber-600' : 'bg-green-600'}`}
-                      >
-                        {u.activo ? <UserX size={14} /> : <UserCheck size={14} />}
-                      </button>
-                      <button
-                        onClick={() => handleResetPassword(u)}
-                        title="Restablecer Contraseña"
-                        className="p-1.5 rounded-lg border text-white bg-blue-600"
-                      >
-                        <KeyRound size={14} />
-                      </button>
+                <div key={u.id} className="p-4 space-y-3">
+                  <div className="flex justify-between items-start gap-2">
+                    <div>
+                      <div className="text-sm font-medium" style={{ color: '#172033' }}>{u.nombre}</div>
+                      {u.estudiante && <div className="text-xs text-gray-400 font-mono mt-0.5">{u.estudiante.codigo}</div>}
                     </div>
-                  </td>
-                </tr>
+                    <StatusChip estado={u.activo ? 'activo' : 'suspendido'} />
+                  </div>
+                  
+                  <div className="text-xs space-y-1">
+                    <div className="flex justify-between items-center gap-2">
+                      <span style={{ color: '#5F6B7A' }}>Correo:</span>
+                      <span className="font-medium truncate max-w-[200px]" style={{ color: '#172033' }}>{u.email}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span style={{ color: '#5F6B7A' }}>Rol:</span>
+                      <span className="font-medium" style={{ color: '#172033' }}>{u.rol}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span style={{ color: '#5F6B7A' }}>Registro:</span>
+                      <span style={{ color: '#172033' }}>{new Date(u.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      onClick={() => handleToggleEstado(u)}
+                      className={`flex-1 py-2 rounded-lg border text-white text-xs font-medium flex justify-center items-center gap-1.5 ${u.activo ? 'bg-amber-600' : 'bg-green-600'}`}
+                    >
+                      {u.activo ? <><UserX size={14} /> Desactivar</> : <><UserCheck size={14} /> Activar</>}
+                    </button>
+                    <button
+                      onClick={() => handleResetPassword(u)}
+                      className="flex-1 py-2 rounded-lg border text-white bg-blue-600 text-xs font-medium flex justify-center items-center gap-1.5"
+                    >
+                      <KeyRound size={14} /> Contraseña
+                    </button>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
 
         {!loading && filtered.length === 0 && (
@@ -210,7 +260,7 @@ export default function Usuarios() {
       {/* Modal Nuevo Usuario */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md space-y-4 border shadow-xl" style={{ borderColor: '#DCE3EA' }}>
+          <div className="bg-white rounded-2xl p-6 w-full sm:max-w-md space-y-4 border shadow-xl" style={{ borderColor: '#DCE3EA', maxWidth: 'calc(100vw - 32px)' }}>
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg" style={{ color: '#172033' }}>Crear Nuevo Usuario</h3>
               <button onClick={() => setShowModal(false)} style={{ color: '#5F6B7A' }}><X size={18} /></button>

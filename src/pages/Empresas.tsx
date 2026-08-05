@@ -87,14 +87,14 @@ export default function Empresas() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ color: '#172033' }}>Empresas receptoras</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: '#172033' }}>Empresas receptoras</h1>
           <p className="mt-1 text-sm" style={{ color: '#5F6B7A' }}>Catálogo de empresas conectadas con el backend SMCPP.</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+          className="flex items-center justify-center gap-2 px-4 py-2 w-full sm:w-auto rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
           style={{ backgroundColor: '#2563EB', color: '#FFFFFF' }}>
           <Plus size={14} /> Nueva empresa
         </button>
@@ -114,7 +114,7 @@ export default function Empresas() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: 'Empresas registradas', value: loading ? '…' : empresas.length, color: '#2563EB', bg: '#EFF6FF' },
           { label: 'Vacantes totales', value: loading ? '…' : empresas.reduce((s, e) => s + e.vacantes, 0), color: '#0F9F92', bg: '#CCFBF1' },
@@ -122,14 +122,14 @@ export default function Empresas() {
           { label: 'Postulaciones activas', value: loading ? '…' : empresas.reduce((s, e) => s + (e._count?.postulaciones || 0), 0), color: '#B7791F', bg: '#FEF3C7' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl border p-4" style={{ borderColor: '#DCE3EA' }}>
-            <div className="text-2xl font-bold mb-1" style={{ color: s.color }}>{s.value}</div>
+            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: s.color }}>{s.value}</div>
             <div className="text-xs" style={{ color: '#5F6B7A' }}>{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Search & filters */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#5F6B7A' }} />
           <input
@@ -139,7 +139,7 @@ export default function Empresas() {
             placeholder="Buscar por nombre, rubro o ubicación…"
           />
         </div>
-        <div className="flex rounded-lg border overflow-hidden" style={{ borderColor: '#DCE3EA' }}>
+        <div className="flex rounded-lg border overflow-x-auto whitespace-nowrap scrollbar-hide" style={{ borderColor: '#DCE3EA' }}>
           {modalidades.map(m => (
             <button key={m} onClick={() => setModalidad(m)}
               className="px-3 py-2 text-sm font-medium transition-colors"
@@ -151,9 +151,9 @@ export default function Empresas() {
       </div>
 
       {/* Grid + detail */}
-      <div className="grid gap-6" style={{ gridTemplateColumns: selected ? '1fr 0.45fr' : '1fr' }}>
+      <div className={`flex flex-col ${selected ? 'lg:grid lg:grid-cols-[1fr_0.45fr]' : ''} gap-6`}>
         {/* Cards */}
-        <div>
+        <div className="order-2 lg:order-1">
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map(i => (
@@ -225,7 +225,7 @@ export default function Empresas() {
 
         {/* Detail panel */}
         {selEmpresa && (
-          <div className="bg-white rounded-2xl border p-5 space-y-5" style={{ borderColor: '#DCE3EA' }}>
+          <div className="bg-white rounded-2xl border p-5 space-y-5 order-1 lg:order-2 lg:sticky lg:top-4" style={{ borderColor: '#DCE3EA' }}>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#EFF6FF' }}>
                 <Building2 size={22} style={{ color: '#2563EB' }} />
@@ -273,7 +273,7 @@ export default function Empresas() {
       {/* Modal Nueva Empresa */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md space-y-4 shadow-xl border" style={{ borderColor: '#DCE3EA' }}>
+          <div className="bg-white rounded-2xl p-6 w-full sm:max-w-md space-y-4 shadow-xl border overflow-y-auto max-h-[90vh]" style={{ borderColor: '#DCE3EA', maxWidth: 'calc(100vw - 32px)' }}>
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold" style={{ color: '#172033' }}>Registrar Nueva Empresa</h2>
               <button onClick={() => setShowModal(false)} style={{ color: '#5F6B7A' }}><X size={18} /></button>

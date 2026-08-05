@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Search, Plus, Bell, ChevronDown, ChevronRight, Clock, FileUp,
-  ClipboardList, BarChart2, FileText, CheckSquare, Users, Shield, Key
+  ClipboardList, BarChart2, FileText, CheckSquare, Users, Shield, Key, Menu
 } from 'lucide-react';
 import { api } from '../services/api';
 import type { NotificacionBackend, UserBackend, RolBackend } from '../types/api';
@@ -42,9 +42,10 @@ const breadcrumbMap: Record<string, string> = {
 interface TopbarProps {
   rol: RolBackend;
   onLogout: () => void;
+  onToggleMobileMenu?: () => void;
 }
 
-export function Topbar({ rol, onLogout }: TopbarProps) {
+export function Topbar({ rol, onLogout, onToggleMobileMenu }: TopbarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [showProfile, setShowProfile] = useState(false);
@@ -130,106 +131,119 @@ export function Topbar({ rol, onLogout }: TopbarProps) {
   };
 
   return (
-    <header className="flex items-center gap-4 px-6 h-14 border-b flex-shrink-0"
+    <header className="flex items-center gap-2 sm:gap-4 px-4 sm:px-6 h-14 border-b shrink-0 transition-all w-full"
       style={{ backgroundColor: '#FFFFFF', borderColor: '#DCE3EA' }}>
+      
+      {/* Mobile Menu Toggle */}
+      {onToggleMobileMenu && (
+        <button 
+          onClick={onToggleMobileMenu}
+          className="md:hidden flex items-center justify-center p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 shrink-0 mr-1"
+        >
+          <Menu size={20} />
+        </button>
+      )}
+
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 text-sm flex-1">
-        <span style={{ color: '#5F6B7A' }}>SMCPP</span>
-        <ChevronRight size={13} style={{ color: '#DCE3EA' }} />
-        <span className="font-medium" style={{ color: '#172033' }}>{breadLabel}</span>
+      <div className="flex items-center gap-1.5 text-sm flex-1 min-w-0">
+        <span className="hidden sm:inline" style={{ color: '#5F6B7A' }}>SMCPP</span>
+        <ChevronRight size={13} className="hidden sm:block" style={{ color: '#DCE3EA' }} />
+        <span className="font-medium truncate" style={{ color: '#172033' }}>{breadLabel}</span>
       </div>
 
       {/* Search */}
-      <div className="relative hidden md:flex items-center">
+      <div className="relative hidden md:flex items-center w-full max-w-[280px]">
         <Search size={14} className="absolute left-3" style={{ color: '#5F6B7A' }} />
         <input
-          className="pl-9 pr-4 py-2 text-sm rounded-lg border outline-none focus:border-blue-400 transition-colors"
-          style={{ borderColor: '#DCE3EA', backgroundColor: '#F4F7FA', width: 280, color: '#172033' }}
+          className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border outline-none focus:border-blue-400 transition-colors"
+          style={{ borderColor: '#DCE3EA', backgroundColor: '#F4F7FA', color: '#172033' }}
           placeholder={searchPlaceholder}
         />
       </div>
 
-      {/* Quick actions dropdown */}
-      <div className="relative">
-        <button
-          onClick={() => setShowActions(!showActions)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
-          style={{ backgroundColor: '#2563EB', color: '#FFFFFF' }}>
-          <Plus size={14} />
-          <span className="hidden sm:inline">Acción rápida</span>
-          <ChevronDown size={12} />
-        </button>
-        {showActions && (
-          <div className="absolute right-0 top-10 rounded-xl shadow-lg border z-50 py-1"
-            style={{ backgroundColor: '#FFFFFF', borderColor: '#DCE3EA', width: 210 }}>
-            {(!actions || actions.length === 0) ? (
-              <div className="px-4 py-2 text-xs text-gray-500">No hay acciones disponibles para este perfil.</div>
-            ) : (
-              actions.map(a => {
-                const IconComp = typeof a.icon === 'function' || (typeof a.icon === 'object' && a.icon !== null) ? a.icon : null;
-                return (
-                  <button key={a.label}
-                    onClick={() => {
-                      setShowActions(false);
-                      if (a.url) navigate(a.url);
-                    }}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors text-left"
-                    style={{ color: '#172033' }}>
-                    {IconComp ? <IconComp size={14} style={{ color: '#5F6B7A' }} /> : <Plus size={14} style={{ color: '#5F6B7A' }} />}
-                    {a.label}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        )}
-      </div>
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+        {/* Quick actions dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowActions(!showActions)}
+            className="flex items-center justify-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 rounded-lg text-sm font-medium transition-colors"
+            style={{ backgroundColor: '#2563EB', color: '#FFFFFF' }}>
+            <Plus size={16} className="sm:w-[14px] sm:h-[14px]" />
+            <span className="hidden sm:inline">Acción rápida</span>
+            <ChevronDown size={12} className="hidden sm:inline" />
+          </button>
+          {showActions && (
+            <div className="absolute right-0 top-10 rounded-xl shadow-lg border z-50 py-1"
+              style={{ backgroundColor: '#FFFFFF', borderColor: '#DCE3EA', width: 210 }}>
+              {(!actions || actions.length === 0) ? (
+                <div className="px-4 py-2 text-xs text-gray-500">No hay acciones disponibles para este perfil.</div>
+              ) : (
+                actions.map(a => {
+                  const IconComp = typeof a.icon === 'function' || (typeof a.icon === 'object' && a.icon !== null) ? a.icon : null;
+                  return (
+                    <button key={a.label}
+                      onClick={() => {
+                        setShowActions(false);
+                        if (a.url) navigate(a.url);
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors text-left"
+                      style={{ color: '#172033' }}>
+                      {IconComp ? <IconComp size={14} style={{ color: '#5F6B7A' }} /> : <Plus size={14} style={{ color: '#5F6B7A' }} />}
+                      {a.label}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
 
 
-      {/* Bell Notification */}
-      <button onClick={() => navigate('/notificaciones')}
-        className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
-        style={{ color: '#5F6B7A' }}>
-        <Bell size={16} />
-        {unreadCount > 0 && (
-          <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full text-white flex items-center justify-center"
-            style={{ backgroundColor: '#C43D4D', fontSize: 10 }}>{unreadCount}</span>
-        )}
-      </button>
-
-      {/* Profile */}
-      <div className="relative">
-        <button onClick={() => setShowProfile(!showProfile)}
-          className="flex items-center gap-2 pl-1.5 pr-2 py-1 rounded-lg hover:bg-gray-50 transition-colors">
-          <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold"
-            style={{ backgroundColor: rol === 'ADMINISTRADOR' ? '#DC2626' : rol === 'COORDINADOR' ? '#152A43' : rol === 'TUTOR' ? '#D97706' : '#2563EB' }}>
-            {userInitials}
-          </div>
-          <div className="text-left hidden sm:block">
-            <div className="text-xs font-medium" style={{ color: '#172033' }}>{userName}</div>
-            <div className="text-xs capitalize" style={{ color: '#5F6B7A' }}>{userSubtitle}</div>
-          </div>
-          <ChevronDown size={12} style={{ color: '#5F6B7A' }} />
+        {/* Bell Notification */}
+        <button onClick={() => navigate('/notificaciones')}
+          className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
+          style={{ color: '#5F6B7A' }}>
+          <Bell size={18} className="sm:w-4 sm:h-4" />
+          {unreadCount > 0 && (
+            <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full text-white flex items-center justify-center"
+              style={{ backgroundColor: '#C43D4D', fontSize: 10 }}>{unreadCount}</span>
+          )}
         </button>
 
-        {showProfile && (
-          <div className="absolute right-0 top-10 rounded-xl shadow-lg border z-50 py-1"
-            style={{ backgroundColor: '#FFFFFF', borderColor: '#DCE3EA', width: 220 }}>
-            <div className="px-4 py-3 border-b" style={{ borderColor: '#EDF2F7' }}>
-              <div className="text-sm font-semibold" style={{ color: '#172033' }}>{userName}</div>
-              <div className="text-xs mt-0.5 capitalize" style={{ color: '#5F6B7A' }}>{userSubtitle} · Periodo 2026-I</div>
+        {/* Profile */}
+        <div className="relative">
+          <button onClick={() => setShowProfile(!showProfile)}
+            className="flex items-center gap-2 pl-1.5 pr-1.5 sm:pr-2 py-1 rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="w-7 h-7 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+              style={{ backgroundColor: rol === 'ADMINISTRADOR' ? '#DC2626' : rol === 'COORDINADOR' ? '#152A43' : rol === 'TUTOR' ? '#D97706' : '#2563EB' }}>
+              {userInitials}
             </div>
+            <div className="text-left hidden sm:block">
+              <div className="text-xs font-medium truncate max-w-[120px]" style={{ color: '#172033' }}>{userName}</div>
+              <div className="text-xs capitalize truncate max-w-[120px]" style={{ color: '#5F6B7A' }}>{userSubtitle}</div>
+            </div>
+            <ChevronDown size={12} className="hidden sm:block" style={{ color: '#5F6B7A' }} />
+          </button>
 
-            <div className="py-1">
-              <button
-                onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
-                style={{ color: '#C43D4D' }}>
-                Cerrar sesión
-              </button>
+          {showProfile && (
+            <div className="absolute right-0 top-10 rounded-xl shadow-lg border z-50 py-1"
+              style={{ backgroundColor: '#FFFFFF', borderColor: '#DCE3EA', width: 220 }}>
+              <div className="px-4 py-3 border-b" style={{ borderColor: '#EDF2F7' }}>
+                <div className="text-sm font-semibold truncate" style={{ color: '#172033' }}>{userName}</div>
+                <div className="text-xs mt-0.5 capitalize truncate" style={{ color: '#5F6B7A' }}>{userSubtitle} · Periodo 2026-I</div>
+              </div>
+
+              <div className="py-1">
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+                  style={{ color: '#C43D4D' }}>
+                  Cerrar sesión
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Close dropdowns on outside click */}
