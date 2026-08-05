@@ -40,52 +40,62 @@ import Incidencias from './pages/admin/Incidencias';
 import { api } from './services/api';
 import type { UserBackend, RolBackend } from './types/api';
 
-const LS_TOKEN = 'smcpp_token';
-const LS_ROL = 'smcpp_rol';
-const LS_USER = 'smcpp_user';
+// Helper to get item from sessionStorage first, then localStorage
+function getStoredItem(key: string): string | null {
+  return sessionStorage.getItem(key) || localStorage.getItem(key);
+}
+
+// Helper to remove SMCPP session keys safely from both storages
+function clearSmcppStorage() {
+  const keys = ['smcpp_token', 'smcpp_user', 'smcpp_rol'];
+  keys.forEach(k => {
+    sessionStorage.removeItem(k);
+    localStorage.removeItem(k);
+  });
+}
 
 export default function App() {
-  const [authenticated, setAuthenticated] = useState<boolean>(() => !!localStorage.getItem(LS_TOKEN));
-  const [rol, setRolState] = useState<RolBackend>(() => {
-    const r = localStorage.getItem(LS_ROL) as RolBackend;
-    return (r === 'ADMINISTRADOR' || r === 'COORDINADOR' || r === 'ESTUDIANTE' || r === 'TUTOR') ? r : 'COORDINADOR';
-  });
-  const [user, setUser] = useState<UserBackend | null>(() => {
-    const raw = localStorage.getItem(LS_USER);
-    if (!raw) return null;
-    try { return JSON.parse(raw); } catch { return null; }
-  });
+  const [authenticated, setAuthenticated] = useState<boolean>(false);
+  const [rol, setRolState] = useState<RolBackend>('COORDINADOR');
+  const [user, setUser] = useState<UserBackend | null>(null);
   const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
 
   // Validate session on mount with GET /api/auth/me
   useEffect(() => {
-    const token = localStorage.getItem(LS_TOKEN);
+    const token = getStoredItem(LS_TOKEN);
+    const savedRol = getStoredItem(LS_ROL) as RolBackend;
+    const savedUserRaw = getStoredItem(LS_USER);
+
     if (!token) {
-      localStorage.removeItem(LS_TOKEN);
-      localStorage.removeItem(LS_USER);
-      localStorage.removeItem(LS_ROL);
+      clearSmcppStorage();
       setAuthenticated(false);
       setUser(null);
       setCheckingAuth(false);
       return;
     }
 
+    if (savedRol) {
+      setRolState(savedRol);
+    }
+    if (savedUserRaw) {
+      try { setUser(JSON.parse(savedUserRaw)); } catch {}
+    }
+
     api.get<UserBackend>('/auth/me')
       .then((userData) => {
         setUser(userData);
-        localStorage.setItem(LS_USER, JSON.stringify(userData));
 
-        // Real role directly from backend GET /api/auth/me
+        // Update active storage
+        const activeStorage = sessionStorage.getItem(LS_TOKEN) ? sessionStorage : localStorage;
+        activeStorage.setItem(LS_USER, JSON.stringify(userData));
+
         const appRol: RolBackend = userData.rol;
-
         setRolState(appRol);
-        localStorage.setItem(LS_ROL, appRol);
+        activeStorage.setItem(LS_ROL, appRol);
         setAuthenticated(true);
       })
       .catch(() => {
-        localStorage.removeItem(LS_TOKEN);
-        localStorage.removeItem(LS_USER);
-        localStorage.removeItem(LS_ROL);
+        clearSmcppStorage();
         setAuthenticated(false);
         setUser(null);
       })
@@ -95,27 +105,26 @@ export default function App() {
   }, []);
 
   const handleLogin = (r: RolBackend, userData?: UserBackend) => {
+    const activeStorage = sessionStorage.getItem(LS_TOKEN) ? sessionStorage : localStorage;
     if (userData) {
       setUser(userData);
-      localStorage.setItem(LS_USER, JSON.stringify(userData));
+      activeStorage.setItem(LS_USER, JSON.stringify(userData));
       setRolState(userData.rol);
-      localStorage.setItem(LS_ROL, userData.rol);
+      activeStorage.setItem(LS_ROL, userData.rol);
     } else {
       setRolState(r);
-      localStorage.setItem(LS_ROL, r);
+      activeStorage.setItem(LS_ROL, r);
     }
     setAuthenticated(true);
   };
 
   const handleLogout = useCallback(() => {
-    localStorage.removeItem(LS_TOKEN);
-    localStorage.removeItem(LS_USER);
-    localStorage.removeItem(LS_ROL);
-    localStorage.clear();
+    clearSmcppStorage();
     setAuthenticated(false);
     setUser(null);
     setRolState('COORDINADOR');
   }, []);
+
 
   if (checkingAuth) {
     return (

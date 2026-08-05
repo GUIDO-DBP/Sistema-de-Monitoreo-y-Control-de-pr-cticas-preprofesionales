@@ -72,13 +72,22 @@ export default function Login({ onLogin }: LoginProps) {
         password,
       });
 
-      // After auto-unwrap in api.ts, response = { token, user }
-      localStorage.setItem('smcpp_token', response.token);
-      localStorage.setItem('smcpp_user', JSON.stringify(response.user));
+      // Save token, user and rol depending on remember checkbox
+      const targetStorage = remember ? localStorage : sessionStorage;
+      const otherStorage = remember ? sessionStorage : localStorage;
+
+      // Clean opposite storage to avoid duplicate tokens
+      otherStorage.removeItem('smcpp_token');
+      otherStorage.removeItem('smcpp_user');
+      otherStorage.removeItem('smcpp_rol');
+
+      targetStorage.setItem('smcpp_token', response.token);
+      targetStorage.setItem('smcpp_user', JSON.stringify(response.user));
 
       const appRol: RolBackend = response.user.rol;
-      localStorage.setItem('smcpp_rol', appRol);
+      targetStorage.setItem('smcpp_rol', appRol);
       onLogin(appRol, response.user);
+
 
       let target = '/dashboard';
       if (appRol === 'TUTOR') target = '/tutor/dashboard';

@@ -14,7 +14,7 @@ export class ApiError extends Error {
 }
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem('smcpp_token');
+  const token = sessionStorage.getItem('smcpp_token') || localStorage.getItem('smcpp_token');
   const isFormData = options.body instanceof FormData;
 
   const headers: Record<string, string> = {
@@ -39,6 +39,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     clearTimeout(timeoutId);
 
     if (response.status === 401) {
+      sessionStorage.removeItem('smcpp_token');
+      sessionStorage.removeItem('smcpp_user');
+      sessionStorage.removeItem('smcpp_rol');
       localStorage.removeItem('smcpp_token');
       localStorage.removeItem('smcpp_user');
       localStorage.removeItem('smcpp_rol');
@@ -46,6 +49,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
         window.location.href = '/login';
       }
     }
+
 
 
   // File download blob response

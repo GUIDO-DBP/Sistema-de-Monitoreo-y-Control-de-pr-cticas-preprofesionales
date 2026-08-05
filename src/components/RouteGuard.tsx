@@ -69,7 +69,9 @@ export function RouteGuard({ children, rol, onAccessDenied }: RouteGuardProps) {
   }
 
   useEffect(() => {
-    if (!isAllowed) {
+    // Only show access denied toast if it is NOT an initial load / root redirect
+    const isInitialRedirect = path === '/' || path === '/dashboard' || path === '/tutor/dashboard' || path === '/admin/dashboard';
+    if (!isAllowed && !isInitialRedirect) {
       onAccessDenied('No tienes permisos para acceder a esta sección.');
     }
   }, [path, isAllowed, onAccessDenied]);
@@ -77,6 +79,7 @@ export function RouteGuard({ children, rol, onAccessDenied }: RouteGuardProps) {
   if (!isAllowed) {
     return <Navigate to={fallbackRedirect} replace />;
   }
+
 
   return <>{children}</>;
 }
