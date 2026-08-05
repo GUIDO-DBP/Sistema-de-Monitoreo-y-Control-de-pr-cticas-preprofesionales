@@ -1,4 +1,3 @@
-import type { AuthResponse, UserData } from '../types/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -52,28 +51,42 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   }
 
   const contentType = response.headers.get('content-type');
-  let data: any = null;
+  let rawData: any = null;
   if (contentType && contentType.includes('application/json')) {
-    data = await response.json();
+    rawData = await response.json();
   } else {
-    data = await response.text();
+    rawData = await response.text();
   }
 
   if (!response.ok) {
+    // Read backend error from { error } or { message } fields
     const errorMessage =
-      typeof data === 'object' && data?.error
-        ? data.error
-        : typeof data === 'string'
-        ? data
+      typeof rawData === 'object' && rawData !== null
+        ? rawData.error || rawData.message || rawData.msg || `Error HTTP ${response.status}`
+        : typeof rawData === 'string'
+        ? rawData
         : `Error HTTP ${response.status}`;
-    throw new ApiError(response.status, errorMessage, data);
+    throw new ApiError(response.status, errorMessage, rawData);
   }
 
-  return data as T;
+  // Auto-unwrap { data: ... } envelope when the ONLY key is "data".
+  // Controllers that respond directly (arrays, plain objects without the envelope)
+  // are passed through untouched.
+  const unwrapped =
+    rawData !== null &&
+    typeof rawData === 'object' &&
+    !Array.isArray(rawData) &&
+    Object.keys(rawData).length === 1 &&
+    'data' in rawData
+      ? rawData.data
+      : rawData;
+
+  return unwrapped as T;
 }
 
 export const api = {
-  get: <T>(endpoint: string) => request<T>(endpoint, { method: 'GET' }),
+  get: <T>(endpoint: string, options?: RequestInit) =>
+    request<T>(endpoint, { method: 'GET', ...options }),
   post: <T>(endpoint: string, body?: any) =>
     request<T>(endpoint, {
       method: 'POST',

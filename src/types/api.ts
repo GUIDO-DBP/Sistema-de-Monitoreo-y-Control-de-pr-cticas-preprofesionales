@@ -268,3 +268,14 @@ export interface SeguimientoEstudianteBackend {
   evaluacionResultado?: number;
   retraso: boolean;
 }
+
+/** Alias para la estructura del usuario devuelta por /auth/me */
+export type UserData = UsuarioBackend;
+export type UserBackend = UsuarioBackend;
+
+/** Respuesta del endpoint POST /api/auth/login (después de auto-unwrap { data }) */
+export interface LoginResponse {
+  token: string;
+  user: UsuarioBackend;
+}
+

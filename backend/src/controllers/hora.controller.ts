@@ -5,7 +5,7 @@ import { crearHoraSchema } from '../validators/hora.validator';
 export async function registrarHora(req: Request, res: Response) {
   try {
     const validatedData = crearHoraSchema.parse(req.body);
-    const registro = await horaService.registrarHora({
+    const data = await horaService.registrarHora({
       usuarioId: req.user!.id,
       postulacionId: validatedData.postulacionId,
       fechaStr: validatedData.fecha,
@@ -16,7 +16,7 @@ export async function registrarHora(req: Request, res: Response) {
       semana: validatedData.semana,
     });
 
-    return res.status(201).json(registro);
+    return res.status(201).json({ data });
   } catch (error: any) {
     return res.status(400).json({ error: error.message || 'Error al registrar horas.' });
   }
@@ -25,7 +25,7 @@ export async function registrarHora(req: Request, res: Response) {
 export async function listarHoras(req: Request, res: Response) {
   try {
     const data = await horaService.listarHoras(req.user!);
-    return res.json(data);
+    return res.json({ data });
   } catch (error: any) {
     return res.status(400).json({ error: error.message });
   }
@@ -34,7 +34,7 @@ export async function listarHoras(req: Request, res: Response) {
 export async function obtenerMiasHoras(req: Request, res: Response) {
   try {
     const data = await horaService.listarHoras(req.user!);
-    return res.json(data);
+    return res.json({ data });
   } catch (error: any) {
     return res.status(400).json({ error: error.message });
   }
@@ -43,8 +43,8 @@ export async function obtenerMiasHoras(req: Request, res: Response) {
 export async function validarHora(req: Request, res: Response) {
   try {
     const { observacion } = req.body;
-    const registro = await horaService.validarHora(req.params.id, req.user!.id, observacion);
-    return res.json(registro);
+    const data = await horaService.validarHora(req.params.id, req.user!.id, observacion);
+    return res.json({ data });
   } catch (error: any) {
     return res.status(400).json({ error: error.message });
   }
@@ -56,8 +56,8 @@ export async function observarHora(req: Request, res: Response) {
     if (!observacion) {
       return res.status(400).json({ error: 'Debes ingresar un motivo de observación.' });
     }
-    const registro = await horaService.observarHora(req.params.id, observacion, req.user!.id);
-    return res.json(registro);
+    const data = await horaService.observarHora(req.params.id, observacion, req.user!.id);
+    return res.json({ data });
   } catch (error: any) {
     return res.status(400).json({ error: error.message });
   }
@@ -65,8 +65,8 @@ export async function observarHora(req: Request, res: Response) {
 
 export async function eliminarHora(req: Request, res: Response) {
   try {
-    const result = await horaService.eliminarHora(req.params.id, req.user!);
-    return res.json(result);
+    const data = await horaService.eliminarHora(req.params.id, req.user!);
+    return res.json({ data });
   } catch (error: any) {
     return res.status(400).json({ error: error.message });
   }

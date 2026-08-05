@@ -66,6 +66,7 @@ export default function Login({ onLogin }: LoginProps) {
         password,
       });
 
+      // After auto-unwrap in api.ts, response = { token, user }
       localStorage.setItem('smcpp_token', response.token);
       localStorage.setItem('smcpp_user', JSON.stringify(response.user));
 
@@ -79,13 +80,17 @@ export default function Login({ onLogin }: LoginProps) {
       navigate('/dashboard');
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message);
+        // Show backend message directly
+        setError(err.message || 'Credenciales incorrectas.');
       } else {
-        setError('Error al conectar con el servidor. Intenta de nuevo.');
+        // Unexpected network / TypeError — log for debugging
+        console.error('[Login] Error inesperado al conectar con el backend:', err);
+        setError('Error al conectar con el servidor. Verifica tu conexión e inténtalo de nuevo.');
       }
     } finally {
       setLoading(false);
     }
+
   };
 
   return (

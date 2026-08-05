@@ -18,11 +18,11 @@ if (!fs.existsSync(uploadPath)) {
 }
 
 // Security & Logging Middlewares
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(
   cors({
-    origin: env.CORS_ORIGINS,
-    credentials: true,
+    origin: '*',
+    credentials: false,
   }),
 );
 app.use(express.json());
@@ -52,7 +52,7 @@ app.use(errorMiddleware);
 async function startServer() {
   try {
     await connectDatabase();
-    app.listen(env.PORT, () => {
+    app.listen(env.PORT, '0.0.0.0', () => {
       console.log(`🚀 SMCPP Backend listening on port ${env.PORT}`);
     });
   } catch (err) {

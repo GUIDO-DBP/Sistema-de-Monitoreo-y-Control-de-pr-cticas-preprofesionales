@@ -19,7 +19,7 @@ export async function subirDocumento(req: Request, res: Response) {
       file,
     });
 
-    return res.status(201).json(doc);
+    return res.status(201).json({ data: doc });
   } catch (error: any) {
     return res.status(400).json({ error: error.message });
   }
@@ -27,8 +27,8 @@ export async function subirDocumento(req: Request, res: Response) {
 
 export async function listarDocumentosPostulacion(req: Request, res: Response) {
   try {
-    const docs = await documentoService.listarDocumentos(req.user!, req.params.id);
-    return res.json(docs);
+    const data = await documentoService.listarDocumentos(req.user!, req.params.id);
+    return res.json({ data });
   } catch (error: any) {
     return res.status(400).json({ error: error.message });
   }
@@ -36,8 +36,8 @@ export async function listarDocumentosPostulacion(req: Request, res: Response) {
 
 export async function listarTodosDocumentos(req: Request, res: Response) {
   try {
-    const docs = await documentoService.listarDocumentos(req.user!);
-    return res.json(docs);
+    const data = await documentoService.listarDocumentos(req.user!);
+    return res.json({ data });
   } catch (error: any) {
     return res.status(400).json({ error: error.message });
   }
@@ -45,8 +45,8 @@ export async function listarTodosDocumentos(req: Request, res: Response) {
 
 export async function obtenerDocumento(req: Request, res: Response) {
   try {
-    const doc = await documentoService.obtenerDocumentoPorId(req.params.id, req.user!);
-    return res.json(doc);
+    const data = await documentoService.obtenerDocumentoPorId(req.params.id, req.user!);
+    return res.json({ data });
   } catch (error: any) {
     return res.status(404).json({ error: error.message });
   }
@@ -59,14 +59,14 @@ export async function cambiarEstado(req: Request, res: Response) {
       return res.status(400).json({ error: 'Estado de documento inválido.' });
     }
 
-    const doc = await documentoService.cambiarEstadoDocumento(
+    const data = await documentoService.cambiarEstadoDocumento(
       req.params.id,
       estado as EstadoDocumento,
       comentario,
       req.user!.id
     );
 
-    return res.json(doc);
+    return res.json({ data });
   } catch (error: any) {
     return res.status(400).json({ error: error.message });
   }
@@ -79,14 +79,14 @@ export async function agregarObservacion(req: Request, res: Response) {
       return res.status(400).json({ error: 'La observación no puede estar vacía.' });
     }
 
-    const doc = await documentoService.cambiarEstadoDocumento(
+    const data = await documentoService.cambiarEstadoDocumento(
       req.params.id,
       EstadoDocumento.OBSERVADO,
       observacion,
       req.user!.id
     );
 
-    return res.json(doc);
+    return res.json({ data });
   } catch (error: any) {
     return res.status(400).json({ error: error.message });
   }
