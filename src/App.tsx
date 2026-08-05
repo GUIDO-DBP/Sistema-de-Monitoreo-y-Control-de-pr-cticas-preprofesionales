@@ -40,6 +40,10 @@ import Incidencias from './pages/admin/Incidencias';
 import { api } from './services/api';
 import type { UserBackend, RolBackend } from './types/api';
 
+const LS_TOKEN = 'smcpp_token';
+const LS_USER = 'smcpp_user';
+const LS_ROL = 'smcpp_rol';
+
 // Helper to get item from sessionStorage first, then localStorage
 function getStoredItem(key: string): string | null {
   return sessionStorage.getItem(key) || localStorage.getItem(key);
@@ -47,7 +51,7 @@ function getStoredItem(key: string): string | null {
 
 // Helper to remove SMCPP session keys safely from both storages
 function clearSmcppStorage() {
-  const keys = ['smcpp_token', 'smcpp_user', 'smcpp_rol'];
+  const keys = [LS_TOKEN, LS_USER, LS_ROL];
   keys.forEach(k => {
     sessionStorage.removeItem(k);
     localStorage.removeItem(k);
@@ -58,31 +62,34 @@ export default function App() {
   const [authenticated, setAuthenticated] = useState<boolean>(false);
   const [rol, setRolState] = useState<RolBackend>('COORDINADOR');
   const [user, setUser] = useState<UserBackend | null>(null);
-  const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
+  const [authChecking, setAuthChecking] = useState<boolean>(true);
 
   // Validate session on mount with GET /api/auth/me
   useEffect(() => {
-    const token = getStoredItem(LS_TOKEN);
-    const savedRol = getStoredItem(LS_ROL) as RolBackend;
-    const savedUserRaw = getStoredItem(LS_USER);
+    const restoreSession = async () => {
+      setAuthChecking(true);
+      
+      const token = getStoredItem(LS_TOKEN);
+      const savedRol = getStoredItem(LS_ROL) as RolBackend;
+      const savedUserRaw = getStoredItem(LS_USER);
 
-    if (!token) {
-      clearSmcppStorage();
-      setAuthenticated(false);
-      setUser(null);
-      setCheckingAuth(false);
-      return;
-    }
+      if (!token) {
+        clearSmcppStorage();
+        setAuthenticated(false);
+        setUser(null);
+        setAuthChecking(false);
+        return;
+      }
 
-    if (savedRol) {
-      setRolState(savedRol);
-    }
-    if (savedUserRaw) {
-      try { setUser(JSON.parse(savedUserRaw)); } catch {}
-    }
+      if (savedRol) {
+        setRolState(savedRol);
+      }
+      if (savedUserRaw) {
+        try { setUser(JSON.parse(savedUserRaw)); } catch {}
+      }
 
-    api.get<UserBackend>('/auth/me')
-      .then((userData) => {
+      try {
+        const userData = await api.get<UserBackend>('/auth/me');
         setUser(userData);
 
         // Update active storage
@@ -93,15 +100,16 @@ export default function App() {
         setRolState(appRol);
         activeStorage.setItem(LS_ROL, appRol);
         setAuthenticated(true);
-      })
-      .catch(() => {
+      } catch (error) {
         clearSmcppStorage();
         setAuthenticated(false);
         setUser(null);
-      })
-      .finally(() => {
-        setCheckingAuth(false);
-      });
+      } finally {
+        setAuthChecking(false);
+      }
+    };
+
+    restoreSession();
   }, []);
 
   const handleLogin = (r: RolBackend, userData?: UserBackend) => {
@@ -125,14 +133,11 @@ export default function App() {
     setRolState('COORDINADOR');
   }, []);
 
-
-  if (checkingAuth) {
+  if (authChecking) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm font-medium text-gray-600">Verificando sesión con el backend SMCPP…</p>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
+        <div className="spinner"></div>
+        <p className="mt-4 text-gray-500 font-medium">Restaurando sesión...</p>
       </div>
     );
   }
