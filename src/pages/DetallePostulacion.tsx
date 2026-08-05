@@ -55,45 +55,47 @@ export default function DetallePostulacion() {
       )}
 
       {/* Header */}
-      <div className="flex items-start gap-4">
-        <button onClick={() => navigate('/postulaciones')}
-          className="mt-1 p-2 rounded-lg hover:bg-gray-100 transition-colors" style={{ color: '#5F6B7A' }}>
-          <ArrowLeft size={16} />
-        </button>
-        <div className="flex-1">
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Avatar iniciales={p.estudiante.iniciales} color={p.estudiante.color} size="lg" />
-              <div>
-                <h1 className="text-2xl font-semibold" style={{ color: '#172033' }}>{p.estudiante.nombre}</h1>
-                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  <span className="text-sm" style={{ color: '#5F6B7A' }}>{p.estudiante.codigo}</span>
-                  <span style={{ color: '#DCE3EA' }}>·</span>
-                  <span className="text-sm" style={{ color: '#5F6B7A' }}>{p.empresa}</span>
-                  <span style={{ color: '#DCE3EA' }}>·</span>
-                  <span className="text-sm" style={{ color: '#5F6B7A' }}>{p.codigo}</span>
+      <div className="flex flex-col xl:flex-row xl:items-start gap-4">
+        <div className="flex items-start gap-4 flex-1">
+          <button onClick={() => navigate('/postulaciones')}
+            className="mt-1 p-2 rounded-lg hover:bg-gray-100 transition-colors" style={{ color: '#5F6B7A' }}>
+            <ArrowLeft size={16} />
+          </button>
+          <div className="flex-1">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Avatar iniciales={p.estudiante.iniciales} color={p.estudiante.color} size="lg" />
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-semibold" style={{ color: '#172033' }}>{p.estudiante.nombre}</h1>
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                    <span className="text-sm" style={{ color: '#5F6B7A' }}>{p.estudiante.codigo}</span>
+                    <span style={{ color: '#DCE3EA' }}>·</span>
+                    <span className="text-sm" style={{ color: '#5F6B7A' }}>{p.empresa}</span>
+                    <span className="hidden sm:inline" style={{ color: '#DCE3EA' }}>·</span>
+                    <span className="hidden sm:inline text-sm" style={{ color: '#5F6B7A' }}>{p.codigo}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-2 ml-auto">
-              <StatusChip estado={p.estado} />
-              <span className="text-sm" style={{ color: '#5F6B7A' }}>Responsable: {p.responsable}</span>
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto mt-2 sm:mt-0">
+                <StatusChip estado={p.estado} />
+                <span className="text-sm" style={{ color: '#5F6B7A' }}>Resp: {p.responsable}</span>
+              </div>
             </div>
           </div>
         </div>
-        <div className="flex gap-2 flex-shrink-0">
+        <div className="flex flex-wrap gap-2 w-full xl:w-auto xl:flex-shrink-0">
           <button onClick={() => showToast('Observación enviada al estudiante.')}
-            className="px-4 py-2 rounded-lg border text-sm font-medium"
+            className="flex-1 sm:flex-none px-4 py-2 rounded-lg border text-sm font-medium text-center"
             style={{ borderColor: '#D65A31', color: '#D65A31', backgroundColor: '#FFF5F0' }}>
             Observar
           </button>
           <button onClick={() => showToast('Postulación rechazada.')}
-            className="px-4 py-2 rounded-lg border text-sm font-medium"
+            className="flex-1 sm:flex-none px-4 py-2 rounded-lg border text-sm font-medium text-center"
             style={{ borderColor: '#C43D4D', color: '#C43D4D', backgroundColor: '#FEF2F2' }}>
             Rechazar
           </button>
           <button onClick={() => showToast('Postulación aprobada correctamente.')}
-            className="px-4 py-2 rounded-lg text-sm font-semibold"
+            className="w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-semibold text-center mt-2 sm:mt-0"
             style={{ backgroundColor: '#168A5B', color: '#FFFFFF' }}>
             Aprobar postulación
           </button>
@@ -103,9 +105,9 @@ export default function DetallePostulacion() {
       {/* Timeline horizontal */}
       <div className="p-5 rounded-2xl border bg-white" style={{ borderColor: '#DCE3EA' }}>
         <h2 className="text-sm font-semibold mb-4" style={{ color: '#172033' }}>Trayectoria de la postulación</h2>
-        <div className="flex items-center relative">
-          <div className="absolute top-4 left-4 right-4 h-0.5" style={{ backgroundColor: '#DCE3EA' }} />
-          <div className="absolute top-4 left-4 h-0.5" style={{ width: `${((p.etapa - 1) / (etapas.length - 1)) * 88}%`, backgroundColor: '#2563EB' }} />
+        <div className="flex items-center relative overflow-x-auto pb-4 sm:pb-0">
+          <div className="absolute top-4 left-4 right-4 h-0.5 hidden sm:block" style={{ backgroundColor: '#DCE3EA' }} />
+          <div className="absolute top-4 left-4 h-0.5 hidden sm:block" style={{ width: `${((p.etapa - 1) / (etapas.length - 1)) * 88}%`, backgroundColor: '#2563EB' }} />
           {etapas.map((e, i) => (
             <div key={e} className="flex-1 flex flex-col items-center relative z-10">
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold border-2"
@@ -124,14 +126,14 @@ export default function DetallePostulacion() {
       </div>
 
       {/* Main layout */}
-      <div className="grid gap-6" style={{ gridTemplateColumns: '1fr 0.47fr' }}>
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Left col */}
-        <div className="space-y-4">
+        <div className="flex-1 space-y-4 min-w-0">
           {/* Tabs */}
-          <div className="flex gap-0 border-b" style={{ borderColor: '#DCE3EA' }}>
+          <div className="flex gap-0 border-b overflow-x-auto" style={{ borderColor: '#DCE3EA' }}>
             {(['resumen', 'documentos', 'historial', 'comentarios'] as const).map(t => (
               <button key={t} onClick={() => setTab(t)}
-                className="px-4 py-3 text-sm font-medium border-b-2 -mb-px capitalize transition-colors"
+                className="px-3 sm:px-4 py-3 text-sm font-medium border-b-2 -mb-px capitalize transition-colors whitespace-nowrap"
                 style={{ borderColor: tab === t ? '#2563EB' : 'transparent', color: tab === t ? '#2563EB' : '#5F6B7A' }}>
                 {t === 'comentarios' ? 'Comentarios' : t === 'documentos' ? 'Documentos' : t === 'historial' ? 'Historial' : 'Resumen'}
               </button>
@@ -141,7 +143,7 @@ export default function DetallePostulacion() {
           {tab === 'resumen' && (
             <div className="bg-white rounded-2xl border p-6 space-y-4" style={{ borderColor: '#DCE3EA' }}>
               <h3 className="text-sm font-semibold" style={{ color: '#172033' }}>Información académica</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
                   ['Escuela profesional', p.estudiante.escuela],
                   ['Ciclo académico', `${p.estudiante.ciclo}° ciclo`],
@@ -150,13 +152,13 @@ export default function DetallePostulacion() {
                 ].map(([k, v]) => (
                   <div key={k} className="p-3 rounded-xl" style={{ backgroundColor: '#F4F7FA' }}>
                     <div className="text-xs" style={{ color: '#5F6B7A' }}>{k}</div>
-                    <div className="text-sm font-medium mt-0.5" style={{ color: '#172033' }}>{v}</div>
+                    <div className="text-sm font-medium mt-0.5 break-words" style={{ color: '#172033' }}>{v}</div>
                   </div>
                 ))}
               </div>
               <div className="border-t pt-4" style={{ borderColor: '#EDF2F7' }}>
                 <h3 className="text-sm font-semibold mb-3" style={{ color: '#172033' }}>Información de la empresa</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
                     ['Empresa', p.empresa],
                     ['Área de práctica', p.area],
@@ -182,39 +184,65 @@ export default function DetallePostulacion() {
 
           {tab === 'documentos' && (
             <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: '#DCE3EA' }}>
-              <table className="w-full">
-                <thead>
-                  <tr style={{ backgroundColor: '#F4F7FA' }}>
-                    {['Documento', 'Versión', 'Fecha', 'Tamaño', 'Estado', 'Acciones'].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: '#5F6B7A' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {documentos.map((doc, i) => (
-                    <tr key={i} className="border-t" style={{ borderColor: '#EDF2F7' }}>
-                      <td className="px-4 py-3">
-                        <div className="text-sm font-medium" style={{ color: '#172033' }}>{doc.nombre}</div>
-                        {doc.obs && <div className="text-xs mt-0.5" style={{ color: '#D65A31' }}>Obs: {doc.obs}</div>}
-                      </td>
-                      <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{doc.version}</td>
-                      <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{doc.fecha}</td>
-                      <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{doc.tamano}</td>
-                      <td className="px-4 py-3"><StatusChip estado={doc.estado as any} /></td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-1">
-                          <button onClick={() => setDocPanel(doc)} className="p-1.5 rounded-lg hover:bg-gray-100" style={{ color: '#5F6B7A' }}>
-                            <Eye size={14} />
-                          </button>
-                          <button className="p-1.5 rounded-lg hover:bg-gray-100" style={{ color: '#5F6B7A' }}>
-                            <Download size={14} />
-                          </button>
-                        </div>
-                      </td>
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr style={{ backgroundColor: '#F4F7FA' }}>
+                      {['Documento', 'Versión', 'Fecha', 'Tamaño', 'Estado', 'Acciones'].map(h => (
+                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: '#5F6B7A' }}>{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {documentos.map((doc, i) => (
+                      <tr key={i} className="border-t" style={{ borderColor: '#EDF2F7' }}>
+                        <td className="px-4 py-3">
+                          <div className="text-sm font-medium" style={{ color: '#172033' }}>{doc.nombre}</div>
+                          {doc.obs && <div className="text-xs mt-0.5" style={{ color: '#D65A31' }}>Obs: {doc.obs}</div>}
+                        </td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{doc.version}</td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{doc.fecha}</td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{doc.tamano}</td>
+                        <td className="px-4 py-3 whitespace-nowrap"><StatusChip estado={doc.estado as any} /></td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex gap-1">
+                            <button onClick={() => setDocPanel(doc)} className="p-1.5 rounded-lg hover:bg-gray-100" style={{ color: '#5F6B7A' }}>
+                              <Eye size={14} />
+                            </button>
+                            <button className="p-1.5 rounded-lg hover:bg-gray-100" style={{ color: '#5F6B7A' }}>
+                              <Download size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="md:hidden divide-y" style={{ borderColor: '#EDF2F7' }}>
+                {documentos.map((doc, i) => (
+                  <div key={i} className="p-4 space-y-3">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="text-sm font-medium" style={{ color: '#172033' }}>{doc.nombre}</div>
+                      <StatusChip estado={doc.estado as any} />
+                    </div>
+                    {doc.obs && <div className="text-xs p-2 rounded bg-red-50" style={{ color: '#D65A31' }}>Obs: {doc.obs}</div>}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" style={{ color: '#5F6B7A' }}>
+                      <span>Versión: {doc.version}</span>
+                      <span>Fecha: {doc.fecha}</span>
+                      <span>{doc.tamano}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => setDocPanel(doc)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium w-1/2 justify-center" style={{ borderColor: '#DCE3EA', color: '#5F6B7A' }}>
+                        <Eye size={14} /> Ver
+                      </button>
+                      <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium w-1/2 justify-center" style={{ borderColor: '#DCE3EA', color: '#5F6B7A' }}>
+                        <Download size={14} /> Bajar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -280,7 +308,7 @@ export default function DetallePostulacion() {
         </div>
 
         {/* Right col */}
-        <div className="space-y-4">
+        <div className="w-full lg:w-80 space-y-4">
           <div className="bg-white rounded-2xl border p-5" style={{ borderColor: '#DCE3EA' }}>
             <h3 className="text-sm font-semibold mb-3" style={{ color: '#172033' }}>Siguiente acción</h3>
             <div className="p-3 rounded-xl mb-3" style={{ backgroundColor: '#EFF6FF' }}>

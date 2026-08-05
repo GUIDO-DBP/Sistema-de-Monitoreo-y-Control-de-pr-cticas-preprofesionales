@@ -10,18 +10,18 @@ export default function PeriodosAcademicos() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold text-slate-900">Periodos académicos</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900">Periodos académicos</h1>
           <p className="mt-1 text-sm text-slate-500">Gestión de lectivos y calendarios de prácticas preprofesionales.</p>
         </div>
         <button onClick={() => alert('Función para apertura de nuevo periodo académico activa.')}
-          className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 flex items-center gap-2">
+          className="w-full sm:w-auto justify-center px-4 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 flex items-center gap-2">
           <Plus size={14} /> Nuevo periodo
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {periodos.map(p => (
           <div key={p.codigo} className="p-6 rounded-2xl border bg-white border-slate-200 space-y-3">
             <div className="flex items-center justify-between">

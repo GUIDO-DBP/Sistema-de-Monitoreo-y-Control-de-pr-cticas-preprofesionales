@@ -129,50 +129,103 @@ export default function Evaluaciones() {
             Cargando evaluaciones desde la API…
           </div>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr style={{ backgroundColor: '#F4F7FA' }}>
-                {['Estudiante', 'Empresa / Práctica', 'Avance', 'Nota Global', 'Estado', 'Acción'].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: '#5F6B7A' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr style={{ backgroundColor: '#F4F7FA' }}>
+                    {['Estudiante', 'Empresa / Práctica', 'Avance', 'Nota Global', 'Estado', 'Acción'].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: '#5F6B7A' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(e => {
+                    const estNombre = e.estudiante?.usuario?.nombre || '—';
+                    const empNombre = e.postulacion?.empresa?.nombre || '—';
+                    const appEstado = e.estado === 'COMPLETADA' ? 'aprobada' : e.estado === 'EN_PROCESO' ? 'en_revision' : 'pendiente';
+
+                    return (
+                      <tr key={e.id} className="border-t hover:bg-gray-50 transition-colors" style={{ borderColor: '#EDF2F7' }}>
+                        <td className="px-4 py-3 text-sm font-medium whitespace-nowrap" style={{ color: '#172033' }}>{estNombre}</td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: '#5F6B7A' }}>{empNombre} ({e.postulacion?.codigo})</td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#EDF2F7' }}>
+                              <div className="h-full rounded-full" style={{ width: `${e.avance}%`, backgroundColor: '#2563EB' }} />
+                            </div>
+                            <span>{e.avance}%</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm font-bold whitespace-nowrap" style={{ color: '#2563EB' }}>
+                          {e.resultado ? `${e.resultado.toFixed(2)} / 5.0` : 'Pendiente'}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap"><StatusChip estado={appEstado} /></td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <button
+                            onClick={() => handleOpenEval(e)}
+                            className="px-3 py-1.5 rounded-lg border text-xs font-semibold hover:bg-blue-50 transition-colors"
+                            style={{ borderColor: '#2563EB', color: '#2563EB' }}
+                          >
+                            {e.estado === 'COMPLETADA' ? 'Ver Rubrica' : 'Calificar'}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="md:hidden divide-y" style={{ borderColor: '#EDF2F7' }}>
               {filtered.map(e => {
                 const estNombre = e.estudiante?.usuario?.nombre || '—';
                 const empNombre = e.postulacion?.empresa?.nombre || '—';
                 const appEstado = e.estado === 'COMPLETADA' ? 'aprobada' : e.estado === 'EN_PROCESO' ? 'en_revision' : 'pendiente';
 
                 return (
-                  <tr key={e.id} className="border-t hover:bg-gray-50 transition-colors" style={{ borderColor: '#EDF2F7' }}>
-                    <td className="px-4 py-3 text-sm font-medium" style={{ color: '#172033' }}>{estNombre}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: '#5F6B7A' }}>{empNombre} ({e.postulacion?.codigo})</td>
-                    <td className="px-4 py-3 text-xs">
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#EDF2F7' }}>
-                          <div className="h-full rounded-full" style={{ width: `${e.avance}%`, backgroundColor: '#2563EB' }} />
-                        </div>
-                        <span>{e.avance}%</span>
+                  <div key={e.id} className="p-4 space-y-3">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="font-medium text-sm leading-tight" style={{ color: '#172033' }}>{estNombre}</div>
+                      <StatusChip estado={appEstado} />
+                    </div>
+                    
+                    <div className="text-xs space-y-2">
+                      <div>
+                        <span style={{ color: '#5F6B7A' }} className="block mb-0.5">Empresa / Práctica:</span>
+                        <span style={{ color: '#172033' }}>{empNombre} ({e.postulacion?.codigo})</span>
                       </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm font-bold" style={{ color: '#2563EB' }}>
-                      {e.resultado ? `${e.resultado.toFixed(2)} / 5.0` : 'Pendiente'}
-                    </td>
-                    <td className="px-4 py-3"><StatusChip estado={appEstado} /></td>
-                    <td className="px-4 py-3">
+                      <div className="flex justify-between items-center">
+                        <span style={{ color: '#5F6B7A' }}>Avance:</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#EDF2F7' }}>
+                            <div className="h-full rounded-full" style={{ width: `${e.avance}%`, backgroundColor: '#2563EB' }} />
+                          </div>
+                          <span>{e.avance}%</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span style={{ color: '#5F6B7A' }}>Nota Global:</span>
+                        <span className="font-bold text-sm" style={{ color: '#2563EB' }}>
+                          {e.resultado ? `${e.resultado.toFixed(2)} / 5.0` : 'Pendiente'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
                       <button
                         onClick={() => handleOpenEval(e)}
-                        className="px-3 py-1.5 rounded-lg border text-xs font-semibold hover:bg-blue-50"
+                        className="w-full py-2 rounded-lg border text-sm font-semibold hover:bg-blue-50 transition-colors flex justify-center items-center gap-2"
                         style={{ borderColor: '#2563EB', color: '#2563EB' }}
                       >
-                        {e.estado === 'COMPLETADA' ? 'Ver Rubrica' : 'Calificar'}
+                        <Star size={16} /> {e.estado === 'COMPLETADA' ? 'Ver Rubrica' : 'Calificar'}
                       </button>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
 
         {!loading && filtered.length === 0 && (
@@ -185,7 +238,7 @@ export default function Evaluaciones() {
       {/* Modal Evaluation Form */}
       {selectedEval && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl space-y-4 border shadow-xl max-h-[90vh] overflow-y-auto" style={{ borderColor: '#DCE3EA' }}>
+          <div className="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-2xl space-y-4 border shadow-xl max-h-[90vh] overflow-y-auto" style={{ borderColor: '#DCE3EA', maxWidth: 'calc(100vw - 32px)' }}>
             <div className="flex items-center justify-between border-b pb-3">
               <div>
                 <h3 className="font-semibold text-lg" style={{ color: '#172033' }}>Evaluación de Desempeño Ponderada</h3>
@@ -245,7 +298,7 @@ export default function Evaluaciones() {
               </div>
 
               {selectedEval.estado !== 'COMPLETADA' && (
-                <div className="flex gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <button
                     type="button"
                     disabled={saving}

@@ -188,7 +188,7 @@ export default function NuevaPostulacion({ rol }: NuevaPostulacionProps) {
         {step === 1 && (
           <div>
             <h2 className="text-base font-semibold mb-4" style={{ color: '#172033' }}>Información de la práctica</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#172033' }}>Área de interés</label>
                 <input
@@ -229,14 +229,14 @@ export default function NuevaPostulacion({ rol }: NuevaPostulacionProps) {
                   value={form.fechaFin} onChange={e => setForm(prev => ({ ...prev, fechaFin: e.target.value }))} />
               </div>
 
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#172033' }}>Motivación para la práctica</label>
                 <textarea rows={3} className="w-full px-3 py-2 text-sm rounded-lg border outline-none resize-none"
                   style={{ borderColor: '#DCE3EA' }} placeholder="¿Por qué te interesa esta empresa y práctica?"
                   value={form.motivacion} onChange={e => setForm(prev => ({ ...prev, motivacion: e.target.value }))} />
               </div>
 
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#172033' }}>
                   Descripción de actividades
                 </label>
@@ -301,7 +301,7 @@ export default function NuevaPostulacion({ rol }: NuevaPostulacionProps) {
               </div>
               <div className="p-4 rounded-xl" style={{ backgroundColor: '#F4F7FA' }}>
                 <h3 className="text-xs font-semibold mb-2" style={{ color: '#5F6B7A' }}>INFORMACIÓN DE LA PRÁCTICA</h3>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {[
                     ['Área', form.area || '—'],
                     ['Modalidad', form.modalidad || '—'],
