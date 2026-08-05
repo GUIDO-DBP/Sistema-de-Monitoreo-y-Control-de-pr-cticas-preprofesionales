@@ -50,7 +50,11 @@ export default function App() {
   useEffect(() => {
     const token = localStorage.getItem(LS_TOKEN);
     if (!token) {
+      localStorage.removeItem(LS_TOKEN);
+      localStorage.removeItem(LS_USER);
+      localStorage.removeItem(LS_ROL);
       setAuthenticated(false);
+      setUser(null);
       setCheckingAuth(false);
       return;
     }
@@ -65,12 +69,13 @@ export default function App() {
             ? 'coordinador'
             : 'estudiante';
 
+        // Override any manual tampering in localStorage with the real role from backend
         setRolState(appRol);
         localStorage.setItem(LS_ROL, appRol);
         setAuthenticated(true);
       })
       .catch(() => {
-        // Token invalid or expired
+        // Token invalid or expired - purge session data completely
         localStorage.removeItem(LS_TOKEN);
         localStorage.removeItem(LS_USER);
         localStorage.removeItem(LS_ROL);
@@ -93,18 +98,19 @@ export default function App() {
   };
 
   const handleRolChange = useCallback((r: 'coordinador' | 'estudiante') => {
-    localStorage.setItem(LS_ROL, r);
-    setRolState(r);
+    // No-op for security: role switching from UI is disabled
   }, []);
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem(LS_TOKEN);
     localStorage.removeItem(LS_USER);
     localStorage.removeItem(LS_ROL);
+    localStorage.clear(); // Complete session wipe
     setAuthenticated(false);
     setUser(null);
     setRolState('coordinador');
   }, []);
+
 
   if (checkingAuth) {
     return (

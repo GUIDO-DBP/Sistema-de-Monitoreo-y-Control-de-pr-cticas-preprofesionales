@@ -108,13 +108,27 @@ export function Sidebar({ collapsed, onToggle, rol }: SidebarProps) {
       </div>
 
       {/* Role badge */}
-      {!collapsed && (
-        <div className="mx-3 mt-3 px-3 py-1.5 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-          <div className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.50)' }}>
-            {rol === 'coordinador' ? '👤 Coordinador de prácticas' : '🎓 Estudiante'}
+      {!collapsed && (() => {
+        const storedUserRaw = localStorage.getItem('smcpp_user');
+        let roleLabel = rol === 'coordinador' ? '👤 Coordinador de prácticas' : '🎓 Estudiante';
+        if (storedUserRaw) {
+          try {
+            const u = JSON.parse(storedUserRaw);
+            if (u.rol === 'ADMINISTRADOR') roleLabel = '🛡️ Administrador General';
+            else if (u.rol === 'COORDINADOR') roleLabel = '👤 Coordinador de prácticas';
+            else if (u.rol === 'TUTOR') roleLabel = '👔 Tutor Empresarial';
+            else if (u.rol === 'ESTUDIANTE') roleLabel = '🎓 Estudiante';
+          } catch {}
+        }
+        return (
+          <div className="mx-3 mt-3 px-3 py-1.5 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+            <div className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.50)' }}>
+              {roleLabel}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
+
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3 px-2">

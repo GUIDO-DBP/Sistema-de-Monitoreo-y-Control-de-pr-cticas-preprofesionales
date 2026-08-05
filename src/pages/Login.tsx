@@ -52,10 +52,15 @@ export default function Login({ onLogin }: LoginProps) {
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [remember, setRemember] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSubmitted, setForgotSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
+
+
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -176,7 +181,7 @@ export default function Login({ onLogin }: LoginProps) {
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="coordinador@unap.edu.pe"
+                placeholder="usuario@unap.edu.pe"
                 required
                 className="w-full px-3.5 py-2.5 text-sm rounded-lg border outline-none transition-colors focus:border-blue-500"
                 style={{ borderColor: '#DCE3EA', color: '#172033' }}
@@ -219,7 +224,16 @@ export default function Login({ onLogin }: LoginProps) {
                 />
                 <span className="text-sm" style={{ color: '#5F6B7A' }}>Mantener mi sesión iniciada</span>
               </label>
-              <button type="button" className="text-sm font-medium" style={{ color: '#2563EB' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotEmail(email);
+                  setForgotSubmitted(false);
+                  setShowForgotModal(true);
+                }}
+                className="text-sm font-medium hover:underline"
+                style={{ color: '#2563EB' }}
+              >
                 ¿Olvidaste tu contraseña?
               </button>
             </div>
@@ -234,17 +248,77 @@ export default function Login({ onLogin }: LoginProps) {
             </button>
           </form>
 
-          <div className="mt-6 p-4 rounded-xl text-xs space-y-1.5" style={{ backgroundColor: '#F4F7FA', color: '#5F6B7A' }}>
-            <strong style={{ color: '#172033' }}>Credenciales backend activas:</strong>
-            <div><span className="font-semibold text-gray-800">Coordinador:</span> coordinador@unap.edu.pe / Coordinador123*</div>
-            <div><span className="font-semibold text-gray-800">Estudiante:</span> ana.torres@unap.edu.pe / Estudiante123*</div>
-          </div>
-
-          <p className="mt-6 text-center text-xs" style={{ color: '#5F6B7A' }}>
+          <p className="mt-8 text-center text-xs" style={{ color: '#5F6B7A' }}>
             ¿Problemas para ingresar? Comunícate con la Oficina de Prácticas.
           </p>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl border w-full max-w-md p-6 relative" style={{ borderColor: '#DCE3EA' }}>
+            <h3 className="text-lg font-semibold mb-2" style={{ color: '#172033' }}>Recuperación de contraseña</h3>
+            
+            {!forgotSubmitted ? (
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                setForgotSubmitted(true);
+              }} className="space-y-4">
+                <p className="text-sm" style={{ color: '#5F6B7A' }}>
+                  Ingresa tu correo institucional para registrar la solicitud de restablecimiento.
+                </p>
+                <div>
+                  <label className="block text-xs font-medium mb-1" style={{ color: '#172033' }}>Correo institucional</label>
+                  <input
+                    type="email"
+                    required
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="usuario@unap.edu.pe"
+                    className="w-full px-3 py-2 text-sm rounded-lg border outline-none focus:border-blue-500"
+                    style={{ borderColor: '#DCE3EA' }}
+                  />
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(false)}
+                    className="px-4 py-2 text-sm font-medium rounded-lg border hover:bg-gray-50"
+                    style={{ borderColor: '#DCE3EA', color: '#5F6B7A' }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-sm font-medium text-white rounded-lg"
+                    style={{ backgroundColor: '#2563EB' }}
+                  >
+                    Enviar solicitud
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-4">
+                <div className="p-3 rounded-lg border text-sm" style={{ backgroundColor: '#EFF6FF', borderColor: '#BFDBFE', color: '#1E40AF' }}>
+                  Tu solicitud fue registrada. Comunícate con la Oficina de Prácticas para completar el restablecimiento.
+                </div>
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(false)}
+                    className="px-4 py-2 text-sm font-medium text-white rounded-lg"
+                    style={{ backgroundColor: '#2563EB' }}
+                  >
+                    Entendido
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

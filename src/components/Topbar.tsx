@@ -82,14 +82,17 @@ export function Topbar({ rol, onRolChange, onLogout }: TopbarProps) {
     ? 'Buscar estudiante, convenio o empresa…'
     : 'Buscar en mi postulación, documentos u horas…';
 
-  const userName = userObj?.nombre || (rol === 'coordinador' ? 'Coord. Carlos Ramos' : 'Ana Torres Mamani');
+  const userName = userObj?.nombre || (rol === 'coordinador' ? 'Coordinador SMCPP' : 'Estudiante');
   const userInitials = userName
     .split(' ')
     .map(n => n[0])
     .slice(0, 2)
     .join('')
     .toUpperCase();
-  const userSubtitle = userObj?.rol ? userObj.rol : (rol === 'coordinador' ? 'Coordinador' : 'Estudiante');
+  const userSubtitle = userObj?.rol
+    ? (userObj.rol === 'ADMINISTRADOR' ? 'Administrador' : userObj.rol === 'COORDINADOR' ? 'Coordinador' : userObj.rol === 'TUTOR' ? 'Tutor Empresarial' : 'Estudiante')
+    : (rol === 'coordinador' ? 'Coordinador' : 'Estudiante');
+
 
   const handleRolChange = (r: 'coordinador' | 'estudiante') => {
     setShowProfile(false);
@@ -185,22 +188,6 @@ export function Topbar({ rol, onRolChange, onLogout }: TopbarProps) {
               <div className="text-xs mt-0.5 capitalize" style={{ color: '#5F6B7A' }}>{userSubtitle} · Periodo 2026-I</div>
             </div>
 
-            {/* Conditionally show demo role switcher */}
-            {demoRoleSwitcherEnabled && (
-              <div className="px-4 py-2 border-b" style={{ borderColor: '#EDF2F7' }}>
-                <div className="text-xs font-semibold mb-1" style={{ color: '#5F6B7A' }}>CAMBIAR ROL (DEMO)</div>
-                {(['coordinador', 'estudiante'] as const).map(r => (
-                  <button key={r}
-                    onClick={() => handleRolChange(r)}
-                    className="w-full flex items-center gap-2 py-1.5 text-sm hover:opacity-80 transition-opacity text-left"
-                    style={{ color: r === rol ? '#2563EB' : '#172033', fontWeight: r === rol ? 600 : 400 }}>
-                    {r === rol && <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#2563EB' }} />}
-                    {r !== rol && <span className="w-1.5 h-1.5" />}
-                    {r === 'coordinador' ? 'Coordinador de prácticas' : 'Estudiante (Ana Torres)'}
-                  </button>
-                ))}
-              </div>
-            )}
 
             <div className="py-1">
               <button
