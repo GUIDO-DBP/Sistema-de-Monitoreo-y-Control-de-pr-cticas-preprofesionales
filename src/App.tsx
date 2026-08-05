@@ -12,6 +12,7 @@ import Evaluaciones from './pages/Evaluaciones';
 import Convenios from './pages/Convenios';
 import Reportes from './pages/Reportes';
 import Notificaciones from './pages/Notificaciones';
+
 // Student pages
 import MiPostulacion from './pages/estudiante/MiPostulacion';
 import MisDocumentos from './pages/estudiante/MisDocumentos';
@@ -19,12 +20,22 @@ import MisHoras from './pages/estudiante/MisHoras';
 import MiEvaluacion from './pages/estudiante/MiEvaluacion';
 import Perfil from './pages/estudiante/Perfil';
 import Soporte from './pages/estudiante/Soporte';
+
 // Shared & Admin pages
 import Empresas from './pages/Empresas';
 import Documentos from './pages/Documentos';
 import Seguimiento from './pages/Seguimiento';
 import Usuarios from './pages/Usuarios';
 import Configuracion from './pages/Configuracion';
+
+// Dedicated Admin pages
+import RolesPermisos from './pages/admin/RolesPermisos';
+import PeriodosAcademicos from './pages/admin/PeriodosAcademicos';
+import RequisitosDocumentarios from './pages/admin/RequisitosDocumentarios';
+import AuditoriaSistema from './pages/admin/AuditoriaSistema';
+import SeguridadAccesos from './pages/admin/SeguridadAccesos';
+import EstadoSistema from './pages/admin/EstadoSistema';
+import Incidencias from './pages/admin/Incidencias';
 
 import { api } from './services/api';
 import type { UserBackend, RolBackend } from './types/api';
@@ -165,16 +176,16 @@ export default function App() {
             <Route path="tutor/horas" element={<ControlHoras />} />
             <Route path="tutor/evaluaciones" element={<Evaluaciones />} />
 
-            {/* Admin routes */}
+            {/* Admin routes with dedicated components */}
             <Route path="usuarios" element={<Usuarios />} />
             <Route path="configuracion" element={<Configuracion />} />
-            <Route path="admin/roles" element={<Usuarios />} />
-            <Route path="admin/periodos" element={<Configuracion />} />
-            <Route path="admin/requisitos" element={<Documentos />} />
-            <Route path="admin/auditoria" element={<Seguimiento />} />
-            <Route path="admin/seguridad" element={<Usuarios />} />
-            <Route path="admin/estado-sistema" element={<Configuracion />} />
-            <Route path="admin/incidencias" element={<Soporte />} />
+            <Route path="admin/roles" element={<RolesPermisos />} />
+            <Route path="admin/periodos" element={<PeriodosAcademicos />} />
+            <Route path="admin/requisitos" element={<RequisitosDocumentarios />} />
+            <Route path="admin/auditoria" element={<AuditoriaSistema />} />
+            <Route path="admin/seguridad" element={<SeguridadAccesos />} />
+            <Route path="admin/estado-sistema" element={<EstadoSistema />} />
+            <Route path="admin/incidencias" element={<Incidencias />} />
 
             {/* Student routes */}
             <Route path="mi-postulacion" element={<MiPostulacion />} />

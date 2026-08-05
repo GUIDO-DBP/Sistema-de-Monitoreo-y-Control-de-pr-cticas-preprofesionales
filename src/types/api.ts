@@ -16,19 +16,28 @@ export interface UsuarioBackend {
   rol: RolBackend;
   activo: boolean;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   estudiante?: {
+    id?: string;
     codigo: string;
     escuela: string;
     ciclo: number;
-  };
-  tutorEmpresarial?: {
-    cargo?: string;
-    empresa?: {
-      nombre: string;
+    telefono?: string;
+    postulacion?: {
+      empresa?: string;
+      area?: string;
+      tutor?: string;
+      coordinador?: string;
     };
   };
+  tutor?: {
+    id?: string;
+    cargo?: string;
+    empresa?: string;
+    estudiantesAsignados?: number;
+  };
 }
+
 
 export interface EmpresaBackend {
   id: string;
