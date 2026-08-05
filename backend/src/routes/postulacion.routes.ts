@@ -15,6 +15,9 @@ import {
   addObservacion,
 } from '../controllers/postulacion.controller';
 
+import { uploadSinglePdf } from '../middlewares/upload.middleware';
+import * as documentoController from '../controllers/documento.controller';
+
 const router = Router();
 
 router.use(authenticate);
@@ -27,6 +30,12 @@ router.get('/:id', validate(idParamSchema), getById);
 
 /** POST /api/postulaciones — Estudiante or Coordinador/Admin */
 router.post('/', validate(createPostulacionSchema), create);
+
+/** GET /api/postulaciones/:id/documentos — List documents for postulation */
+router.get('/:id/documentos', documentoController.listarDocumentosPostulacion);
+
+/** POST /api/postulaciones/:id/documentos — Upload PDF document for postulation */
+router.post('/:id/documentos', uploadSinglePdf, documentoController.subirDocumento);
 
 /** PATCH /api/postulaciones/:id/estado — Coordinador / Admin only */
 router.patch(
@@ -45,3 +54,4 @@ router.post(
 );
 
 export default router;
+

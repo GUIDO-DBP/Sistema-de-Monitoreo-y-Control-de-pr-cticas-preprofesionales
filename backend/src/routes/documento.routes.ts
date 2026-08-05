@@ -13,12 +13,9 @@ router.get('/', documentoController.listarTodosDocumentos);
 router.get('/:id', documentoController.obtenerDocumento);
 router.get('/:id/descargar', documentoController.descargarDocumento);
 
-// Postulation specific documents
-router.post('/postulaciones/:id/documentos', authorizeRoles(Rol.ESTUDIANTE, Rol.COORDINADOR, Rol.ADMINISTRADOR), uploadSinglePdf, documentoController.subirDocumento);
-router.get('/postulaciones/:id/documentos', documentoController.listarDocumentosPostulacion);
-
 // Status and Observations (Coordinator / Admin)
 router.patch('/:id/estado', authorizeRoles(Rol.COORDINADOR, Rol.ADMINISTRADOR), documentoController.cambiarEstado);
 router.post('/:id/observaciones', authorizeRoles(Rol.COORDINADOR, Rol.ADMINISTRADOR), documentoController.agregarObservacion);
 
 export default router;
+

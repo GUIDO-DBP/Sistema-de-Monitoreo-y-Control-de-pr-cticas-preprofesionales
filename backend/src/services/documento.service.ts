@@ -68,14 +68,28 @@ export async function subirDocumento(params: {
 export async function listarDocumentos(user: { id: string; rol: Rol }, postulacionId?: string) {
   const where: any = {};
 
-  if (user.rol === Rol.ESTUDIANTE) {
+  if (postulacionId) {
+    const postulacion = await prisma.postulacion.findUnique({
+      where: { id: postulacionId },
+      include: { estudiante: true },
+    });
+
+    if (!postulacion) {
+      throw new Error('Postulación no encontrada.');
+    }
+
+    if (user.rol === Rol.ESTUDIANTE) {
+      const estudiante = await prisma.estudiante.findUnique({ where: { usuarioId: user.id } });
+      if (!estudiante || postulacion.estudianteId !== estudiante.id) {
+        throw new Error('No tienes permiso para ver los documentos de esta postulación.');
+      }
+    }
+
+    where.postulacionId = postulacionId;
+  } else if (user.rol === Rol.ESTUDIANTE) {
     const estudiante = await prisma.estudiante.findUnique({ where: { usuarioId: user.id } });
     if (!estudiante) return [];
     where.estudianteId = estudiante.id;
-  }
-
-  if (postulacionId) {
-    where.postulacionId = postulacionId;
   }
 
   return prisma.documento.findMany({
@@ -87,6 +101,7 @@ export async function listarDocumentos(user: { id: string; rol: Rol }, postulaci
     orderBy: { createdAt: 'desc' },
   });
 }
+
 
 export async function obtenerDocumentoPorId(id: string, user: { id: string; rol: Rol }) {
   const doc = await prisma.documento.findUnique({

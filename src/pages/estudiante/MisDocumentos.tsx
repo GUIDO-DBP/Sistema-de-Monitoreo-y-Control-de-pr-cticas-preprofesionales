@@ -31,11 +31,20 @@ export default function MisDocumentos() {
         setDocs(docsRes);
       }
     } catch (err) {
-      if (err instanceof ApiError) setError(err.message);
-      else setError('Error al cargar la lista de documentos.');
+      if (err instanceof ApiError) {
+        // If error contains raw HTML or 404/500 code, show clean friendly message
+        if (err.status === 404 || err.status >= 500 || err.message.includes('<!DOCTYPE') || err.message.includes('Cannot GET')) {
+          setError('No se pudieron cargar los documentos. Intenta nuevamente.');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError('No se pudieron cargar los documentos. Intenta nuevamente.');
+      }
     } finally {
       setLoading(false);
     }
+
   }, []);
 
   useEffect(() => {
