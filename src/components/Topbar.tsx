@@ -78,7 +78,7 @@ export function Topbar({ rol, onLogout }: TopbarProps) {
   let actions = [
     { label: 'Registrar horas', icon: Clock, url: '/mis-horas' },
     { label: 'Subir documento', icon: FileUp, url: '/mis-documentos' },
-    { label: 'Ver mi avance', icon: '/dashboard' },
+    { label: 'Ver mi postulación', icon: ClipboardList, url: '/mi-postulacion' },
   ];
   let searchPlaceholder = 'Buscar en mi postulación, documentos u horas…';
 
@@ -162,18 +162,29 @@ export function Topbar({ rol, onLogout }: TopbarProps) {
         {showActions && (
           <div className="absolute right-0 top-10 rounded-xl shadow-lg border z-50 py-1"
             style={{ backgroundColor: '#FFFFFF', borderColor: '#DCE3EA', width: 210 }}>
-            {actions.map(a => (
-              <button key={a.label}
-                onClick={() => { navigate(a.url); setShowActions(false); }}
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors text-left"
-                style={{ color: '#172033' }}>
-                <a.icon size={14} style={{ color: '#5F6B7A' }} />
-                {a.label}
-              </button>
-            ))}
+            {(!actions || actions.length === 0) ? (
+              <div className="px-4 py-2 text-xs text-gray-500">No hay acciones disponibles para este perfil.</div>
+            ) : (
+              actions.map(a => {
+                const IconComp = typeof a.icon === 'function' || (typeof a.icon === 'object' && a.icon !== null) ? a.icon : null;
+                return (
+                  <button key={a.label}
+                    onClick={() => {
+                      setShowActions(false);
+                      if (a.url) navigate(a.url);
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors text-left"
+                    style={{ color: '#172033' }}>
+                    {IconComp ? <IconComp size={14} style={{ color: '#5F6B7A' }} /> : <Plus size={14} style={{ color: '#5F6B7A' }} />}
+                    {a.label}
+                  </button>
+                );
+              })
+            )}
           </div>
         )}
       </div>
+
 
       {/* Bell Notification */}
       <button onClick={() => navigate('/notificaciones')}

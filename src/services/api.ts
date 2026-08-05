@@ -15,7 +15,6 @@ export class ApiError extends Error {
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('smcpp_token');
-
   const isFormData = options.body instanceof FormData;
 
   const headers: Record<string, string> = {
@@ -27,19 +26,27 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  // 80 seconds timeout for Render cold start handling
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 80000);
 
-  if (response.status === 401) {
-    localStorage.removeItem('smcpp_token');
-    localStorage.removeItem('smcpp_user');
-    localStorage.removeItem('smcpp_rol');
-    if (window.location.pathname !== '/login') {
-      window.location.href = '/login';
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (response.status === 401) {
+      localStorage.removeItem('smcpp_token');
+      localStorage.removeItem('smcpp_user');
+      localStorage.removeItem('smcpp_rol');
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
-  }
+
 
   // File download blob response
   if (options.headers && (options.headers as any)['Accept'] === 'application/pdf') {
@@ -70,8 +77,6 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   }
 
   // Auto-unwrap { data: ... } envelope when the ONLY key is "data".
-  // Controllers that respond directly (arrays, plain objects without the envelope)
-  // are passed through untouched.
   const unwrapped =
     rawData !== null &&
     typeof rawData === 'object' &&
@@ -82,7 +87,16 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       : rawData;
 
   return unwrapped as T;
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new ApiError(504, 'El servidor está tardando en responder. Es posible que esté iniciando (Render Free Cold Start). Por favor intenta de nuevo.');
+    }
+    if (err instanceof ApiError) throw err;
+    throw new ApiError(0, err.message || 'Error de conexión con el servidor. Verifica tu internet.');
+  }
 }
+
 
 export const api = {
   get: <T>(endpoint: string, options?: RequestInit) =>

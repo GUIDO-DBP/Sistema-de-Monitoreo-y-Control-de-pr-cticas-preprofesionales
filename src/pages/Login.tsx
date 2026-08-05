@@ -87,16 +87,21 @@ export default function Login({ onLogin }: LoginProps) {
 
     } catch (err) {
       if (err instanceof ApiError) {
-        // Show backend message directly
-        setError(err.message || 'Credenciales incorrectas.');
+        if (err.status === 401) {
+          setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
+        } else if (err.status === 504) {
+          setError('El servidor de Render se está despertando (arranque en frío). Por favor intenta presionar Ingresar nuevamente.');
+        } else {
+          setError(err.message || 'Error de autenticación.');
+        }
       } else {
-        // Unexpected network / TypeError — log for debugging
-        console.error('[Login] Error inesperado al conectar con el backend:', err);
-        setError('Error al conectar con el servidor. Verifica tu conexión e inténtalo de nuevo.');
+        console.error('[Login] Error inesperado:', err);
+        setError('Error al conectar con el servidor. Revisa tu conexión a internet.');
       }
     } finally {
       setLoading(false);
     }
+
 
   };
 
@@ -243,11 +248,13 @@ export default function Login({ onLogin }: LoginProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 rounded-lg text-sm font-semibold transition-all"
+              className="w-full py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2"
               style={{ backgroundColor: '#2563EB', color: '#FFFFFF', opacity: loading ? 0.7 : 1 }}
             >
-              {loading ? 'Verificando con backend…' : 'Ingresar al sistema'}
+              {loading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+              {loading ? 'Iniciando sesión…' : 'Ingresar al sistema'}
             </button>
+
           </form>
 
           <p className="mt-8 text-center text-xs" style={{ color: '#5F6B7A' }}>
