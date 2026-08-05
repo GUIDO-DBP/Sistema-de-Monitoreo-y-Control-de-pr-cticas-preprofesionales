@@ -4,14 +4,14 @@ import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { RouteGuard } from './RouteGuard';
 import { Toast } from './Toast';
+import type { RolBackend } from '../types/api';
 
 interface LayoutProps {
-  rol: 'coordinador' | 'estudiante';
-  onRolChange: (rol: 'coordinador' | 'estudiante') => void;
+  rol: RolBackend;
   onLogout: () => void;
 }
 
-export function Layout({ rol, onRolChange, onLogout }: LayoutProps) {
+export function Layout({ rol, onLogout }: LayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [toast, setToast] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('info');
@@ -25,7 +25,7 @@ export function Layout({ rol, onRolChange, onLogout }: LayoutProps) {
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#F4F7FA' }}>
       <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(c => !c)} rol={rol} />
       <div className="flex flex-col flex-1 min-w-0">
-        <Topbar rol={rol} onRolChange={onRolChange} onLogout={onLogout} />
+        <Topbar rol={rol} onLogout={onLogout} />
         <main className="flex-1 overflow-y-auto p-6">
           <RouteGuard rol={rol} onAccessDenied={msg => showToast(msg, 'error')}>
             <Outlet />
@@ -36,4 +36,3 @@ export function Layout({ rol, onRolChange, onLogout }: LayoutProps) {
     </div>
   );
 }
-

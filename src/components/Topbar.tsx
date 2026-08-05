@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Search, Plus, Bell, ChevronDown, ChevronRight, Clock, FileUp, TrendingUp, ClipboardList, BarChart2, FileText } from 'lucide-react';
+import {
+  Search, Plus, Bell, ChevronDown, ChevronRight, Clock, FileUp,
+  ClipboardList, BarChart2, FileText, CheckSquare, Users, Shield, Key
+} from 'lucide-react';
 import { api } from '../services/api';
-import type { NotificacionBackend, UserBackend } from '../types/api';
+import type { NotificacionBackend, UserBackend, RolBackend } from '../types/api';
 
 const breadcrumbMap: Record<string, string> = {
   '/dashboard': 'Inicio',
@@ -24,22 +27,29 @@ const breadcrumbMap: Record<string, string> = {
   '/mi-evaluacion': 'Mi evaluación',
   '/perfil': 'Mi perfil',
   '/soporte': 'Ayuda y soporte',
+  '/tutor/estudiantes': 'Estudiantes asignados',
+  '/tutor/horas': 'Horas por validar',
+  '/tutor/evaluaciones': 'Evaluaciones pendientes',
+  '/admin/roles': 'Roles y permisos',
+  '/admin/periodos': 'Periodos académicos',
+  '/admin/requisitos': 'Requisitos documentarios',
+  '/admin/auditoria': 'Auditoría del sistema',
+  '/admin/seguridad': 'Seguridad y accesos',
+  '/admin/estado-sistema': 'Estado del sistema',
+  '/admin/incidencias': 'Incidencias',
 };
 
 interface TopbarProps {
-  rol: 'coordinador' | 'estudiante';
-  onRolChange: (rol: 'coordinador' | 'estudiante') => void;
+  rol: RolBackend;
   onLogout: () => void;
 }
 
-export function Topbar({ rol, onRolChange, onLogout }: TopbarProps) {
+export function Topbar({ rol, onLogout }: TopbarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [showProfile, setShowProfile] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
-
-  const demoRoleSwitcherEnabled = import.meta.env.VITE_DEMO_ROLE_SWITCHER === 'true';
 
   // Read stored user details
   const storedUserRaw = localStorage.getItem('smcpp_user');
@@ -57,49 +67,60 @@ export function Topbar({ rol, onRolChange, onLogout }: TopbarProps) {
           setUnreadCount(notifs.filter(n => !n.leida).length);
         }
       })
-      .catch(() => {
-        // Fallback to 0 silently if not authenticated
-      });
+      .catch(() => {});
     return () => { isMounted = false; };
   }, [location.pathname, rol]);
 
   const path = location.pathname;
   const breadLabel = Object.entries(breadcrumbMap).find(([k]) => path.startsWith(k))?.[1] ?? 'SMCPP';
 
-  const coordActions = [
-    { label: 'Nueva postulación', icon: ClipboardList, url: '/postulaciones/nueva' },
-    { label: 'Nuevo convenio', icon: FileText, url: '/convenios' },
-    { label: 'Generar reporte', icon: BarChart2, url: '/reportes' },
-  ];
-  const estudianteActions = [
+  // Role differentiated actions and search placeholders
+  let actions = [
     { label: 'Registrar horas', icon: Clock, url: '/mis-horas' },
     { label: 'Subir documento', icon: FileUp, url: '/mis-documentos' },
     { label: 'Ver mi avance', icon: '/dashboard' },
   ];
-  const actions = rol === 'coordinador' ? coordActions : estudianteActions;
+  let searchPlaceholder = 'Buscar en mi postulación, documentos u horas…';
 
-  const searchPlaceholder = rol === 'coordinador'
-    ? 'Buscar estudiante, convenio o empresa…'
-    : 'Buscar en mi postulación, documentos u horas…';
+  if (rol === 'ADMINISTRADOR') {
+    actions = [
+      { label: 'Crear usuario', icon: Users, url: '/usuarios' },
+      { label: 'Gestionar roles', icon: Shield, url: '/admin/roles' },
+      { label: 'Revisar auditoría', icon: Key, url: '/admin/auditoria' },
+    ];
+    searchPlaceholder = 'Buscar usuario, rol o configuración…';
+  } else if (rol === 'COORDINADOR') {
+    actions = [
+      { label: 'Nueva postulación', icon: ClipboardList, url: '/postulaciones/nueva' },
+      { label: 'Nuevo convenio', icon: FileText, url: '/convenios' },
+      { label: 'Generar reporte', icon: BarChart2, url: '/reportes' },
+    ];
+    searchPlaceholder = 'Buscar estudiante, convenio o empresa…';
+  } else if (rol === 'TUTOR') {
+    actions = [
+      { label: 'Validar horas', icon: Clock, url: '/tutor/horas' },
+      { label: 'Completar evaluación', icon: CheckSquare, url: '/tutor/evaluaciones' },
+      { label: 'Ver estudiantes', icon: Users, url: '/tutor/estudiantes' },
+    ];
+    searchPlaceholder = 'Buscar estudiante asignado o evaluación…';
+  }
 
-  const userName = userObj?.nombre || (rol === 'coordinador' ? 'Coordinador SMCPP' : 'Estudiante');
+  const userName = userObj?.nombre || (
+    rol === 'ADMINISTRADOR' ? 'Administrador General' :
+    rol === 'COORDINADOR' ? 'Coord. Carlos Ramos' :
+    rol === 'TUTOR' ? 'Ing. Carlos Medina' : 'Ana Torres Mamani'
+  );
+
   const userInitials = userName
     .split(' ')
     .map(n => n[0])
     .slice(0, 2)
     .join('')
     .toUpperCase();
+
   const userSubtitle = userObj?.rol
     ? (userObj.rol === 'ADMINISTRADOR' ? 'Administrador' : userObj.rol === 'COORDINADOR' ? 'Coordinador' : userObj.rol === 'TUTOR' ? 'Tutor Empresarial' : 'Estudiante')
-    : (rol === 'coordinador' ? 'Coordinador' : 'Estudiante');
-
-
-  const handleRolChange = (r: 'coordinador' | 'estudiante') => {
-    setShowProfile(false);
-    setShowActions(false);
-    onRolChange(r);
-    navigate('/dashboard');
-  };
+    : (rol === 'ADMINISTRADOR' ? 'Administrador' : rol === 'COORDINADOR' ? 'Coordinador' : rol === 'TUTOR' ? 'Tutor' : 'Estudiante');
 
   const handleLogout = () => {
     setShowProfile(false);
@@ -135,12 +156,12 @@ export function Topbar({ rol, onRolChange, onLogout }: TopbarProps) {
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
           style={{ backgroundColor: '#2563EB', color: '#FFFFFF' }}>
           <Plus size={14} />
-          <span className="hidden sm:inline">{rol === 'coordinador' ? 'Nueva postulación' : 'Acción rápida'}</span>
+          <span className="hidden sm:inline">Acción rápida</span>
           <ChevronDown size={12} />
         </button>
         {showActions && (
           <div className="absolute right-0 top-10 rounded-xl shadow-lg border z-50 py-1"
-            style={{ backgroundColor: '#FFFFFF', borderColor: '#DCE3EA', width: 200 }}>
+            style={{ backgroundColor: '#FFFFFF', borderColor: '#DCE3EA', width: 210 }}>
             {actions.map(a => (
               <button key={a.label}
                 onClick={() => { navigate(a.url); setShowActions(false); }}
@@ -170,7 +191,7 @@ export function Topbar({ rol, onRolChange, onLogout }: TopbarProps) {
         <button onClick={() => setShowProfile(!showProfile)}
           className="flex items-center gap-2 pl-1.5 pr-2 py-1 rounded-lg hover:bg-gray-50 transition-colors">
           <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold"
-            style={{ backgroundColor: rol === 'coordinador' ? '#152A43' : '#2563EB' }}>
+            style={{ backgroundColor: rol === 'ADMINISTRADOR' ? '#DC2626' : rol === 'COORDINADOR' ? '#152A43' : rol === 'TUTOR' ? '#D97706' : '#2563EB' }}>
             {userInitials}
           </div>
           <div className="text-left hidden sm:block">
@@ -187,7 +208,6 @@ export function Topbar({ rol, onRolChange, onLogout }: TopbarProps) {
               <div className="text-sm font-semibold" style={{ color: '#172033' }}>{userName}</div>
               <div className="text-xs mt-0.5 capitalize" style={{ color: '#5F6B7A' }}>{userSubtitle} · Periodo 2026-I</div>
             </div>
-
 
             <div className="py-1">
               <button

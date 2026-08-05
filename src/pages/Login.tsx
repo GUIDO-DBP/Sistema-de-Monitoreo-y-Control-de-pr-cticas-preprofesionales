@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { api, ApiError } from '../services/api';
-import type { LoginResponse } from '../types/api';
+import type { LoginResponse, RolBackend } from '../types/api';
 
 interface LoginProps {
-  onLogin: (rol: 'coordinador' | 'estudiante', user?: LoginResponse['user']) => void;
+  onLogin: (rol: RolBackend, user?: LoginResponse['user']) => void;
 }
+
 
 function PathwayIllustration() {
   const stages = ['Postulación', 'Revisión', 'Aprobación', 'Práctica', 'Evaluación'];
@@ -75,14 +76,15 @@ export default function Login({ onLogin }: LoginProps) {
       localStorage.setItem('smcpp_token', response.token);
       localStorage.setItem('smcpp_user', JSON.stringify(response.user));
 
-      const appRol: 'coordinador' | 'estudiante' =
-        response.user.rol === 'COORDINADOR' || response.user.rol === 'ADMINISTRADOR'
-          ? 'coordinador'
-          : 'estudiante';
-
+      const appRol: RolBackend = response.user.rol;
       localStorage.setItem('smcpp_rol', appRol);
       onLogin(appRol, response.user);
-      navigate('/dashboard');
+
+      let target = '/dashboard';
+      if (appRol === 'TUTOR') target = '/tutor/dashboard';
+      else if (appRol === 'ADMINISTRADOR') target = '/admin/dashboard';
+      navigate(target);
+
     } catch (err) {
       if (err instanceof ApiError) {
         // Show backend message directly

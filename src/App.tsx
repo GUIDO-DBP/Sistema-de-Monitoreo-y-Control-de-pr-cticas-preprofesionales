@@ -19,7 +19,7 @@ import MisHoras from './pages/estudiante/MisHoras';
 import MiEvaluacion from './pages/estudiante/MiEvaluacion';
 import Perfil from './pages/estudiante/Perfil';
 import Soporte from './pages/estudiante/Soporte';
-// New pages
+// Shared & Admin pages
 import Empresas from './pages/Empresas';
 import Documentos from './pages/Documentos';
 import Seguimiento from './pages/Seguimiento';
@@ -27,7 +27,7 @@ import Usuarios from './pages/Usuarios';
 import Configuracion from './pages/Configuracion';
 
 import { api } from './services/api';
-import type { UserBackend } from './types/api';
+import type { UserBackend, RolBackend } from './types/api';
 
 const LS_TOKEN = 'smcpp_token';
 const LS_ROL = 'smcpp_rol';
@@ -35,9 +35,9 @@ const LS_USER = 'smcpp_user';
 
 export default function App() {
   const [authenticated, setAuthenticated] = useState<boolean>(() => !!localStorage.getItem(LS_TOKEN));
-  const [rol, setRolState] = useState<'coordinador' | 'estudiante'>(() => {
-    const r = localStorage.getItem(LS_ROL);
-    return r === 'estudiante' ? 'estudiante' : 'coordinador';
+  const [rol, setRolState] = useState<RolBackend>(() => {
+    const r = localStorage.getItem(LS_ROL) as RolBackend;
+    return (r === 'ADMINISTRADOR' || r === 'COORDINADOR' || r === 'ESTUDIANTE' || r === 'TUTOR') ? r : 'COORDINADOR';
   });
   const [user, setUser] = useState<UserBackend | null>(() => {
     const raw = localStorage.getItem(LS_USER);
@@ -64,18 +64,14 @@ export default function App() {
         setUser(userData);
         localStorage.setItem(LS_USER, JSON.stringify(userData));
 
-        const appRol: 'coordinador' | 'estudiante' =
-          userData.rol === 'COORDINADOR' || userData.rol === 'ADMINISTRADOR'
-            ? 'coordinador'
-            : 'estudiante';
+        // Real role directly from backend GET /api/auth/me
+        const appRol: RolBackend = userData.rol;
 
-        // Override any manual tampering in localStorage with the real role from backend
         setRolState(appRol);
         localStorage.setItem(LS_ROL, appRol);
         setAuthenticated(true);
       })
       .catch(() => {
-        // Token invalid or expired - purge session data completely
         localStorage.removeItem(LS_TOKEN);
         localStorage.removeItem(LS_USER);
         localStorage.removeItem(LS_ROL);
@@ -87,30 +83,28 @@ export default function App() {
       });
   }, []);
 
-  const handleLogin = (r: 'coordinador' | 'estudiante', userData?: UserBackend) => {
+  const handleLogin = (r: RolBackend, userData?: UserBackend) => {
     if (userData) {
       setUser(userData);
       localStorage.setItem(LS_USER, JSON.stringify(userData));
+      setRolState(userData.rol);
+      localStorage.setItem(LS_ROL, userData.rol);
+    } else {
+      setRolState(r);
+      localStorage.setItem(LS_ROL, r);
     }
-    setRolState(r);
-    localStorage.setItem(LS_ROL, r);
     setAuthenticated(true);
   };
-
-  const handleRolChange = useCallback((r: 'coordinador' | 'estudiante') => {
-    // No-op for security: role switching from UI is disabled
-  }, []);
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem(LS_TOKEN);
     localStorage.removeItem(LS_USER);
     localStorage.removeItem(LS_ROL);
-    localStorage.clear(); // Complete session wipe
+    localStorage.clear();
     setAuthenticated(false);
     setUser(null);
-    setRolState('coordinador');
+    setRolState('COORDINADOR');
   }, []);
-
 
   if (checkingAuth) {
     return (
@@ -123,51 +117,74 @@ export default function App() {
     );
   }
 
+  // Redirect target based on role
+  let initialDashboardTarget = '/dashboard';
+  if (rol === 'TUTOR') initialDashboardTarget = '/tutor/dashboard';
+  else if (rol === 'ADMINISTRADOR') initialDashboardTarget = '/admin/dashboard';
+
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={
-            authenticated ? <Navigate to="/dashboard" replace /> : <Login onLogin={handleLogin} />
+            authenticated ? <Navigate to={initialDashboardTarget} replace /> : <Login onLogin={(r, u) => handleLogin(u?.rol || r, u)} />
           } />
 
           <Route path="/" element={
             authenticated
-              ? <Layout rol={rol} onRolChange={handleRolChange} onLogout={handleLogout} />
+              ? <Layout rol={rol} onLogout={handleLogout} />
               : <Navigate to="/login" replace />
           }>
-            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route index element={<Navigate to={initialDashboardTarget} replace />} />
 
-            {/* Shared */}
+            {/* Dashboards */}
             <Route path="dashboard" element={<Dashboard rol={rol} />} />
-            <Route path="notificaciones" element={<Notificaciones rol={rol} />} />
+            <Route path="tutor/dashboard" element={<Dashboard rol="TUTOR" />} />
+            <Route path="admin/dashboard" element={<Dashboard rol="ADMINISTRADOR" />} />
 
-            {/* Coordinator-only routes */}
+            {/* Shared routes */}
+            <Route path="notificaciones" element={<Notificaciones rol={rol === 'COORDINADOR' || rol === 'ADMINISTRADOR' ? 'coordinador' : 'estudiante'} />} />
+            <Route path="perfil" element={<Perfil />} />
+            <Route path="soporte" element={<Soporte />} />
+
+            {/* Coordinator routes */}
             <Route path="bandeja" element={<Bandeja />} />
             <Route path="convenios" element={<Convenios />} />
             <Route path="empresas" element={<Empresas />} />
             <Route path="postulaciones" element={<Postulaciones />} />
-            <Route path="postulaciones/nueva" element={<NuevaPostulacion rol={rol} />} />
+            <Route path="postulaciones/nueva" element={<NuevaPostulacion rol={rol === 'COORDINADOR' ? 'coordinador' : 'estudiante'} />} />
             <Route path="postulaciones/:codigo" element={<DetallePostulacion />} />
             <Route path="documentos" element={<Documentos />} />
             <Route path="control-horas" element={<ControlHoras />} />
             <Route path="evaluaciones" element={<Evaluaciones />} />
             <Route path="reportes" element={<Reportes />} />
             <Route path="seguimiento" element={<Seguimiento />} />
+
+            {/* Tutor routes */}
+            <Route path="tutor/estudiantes" element={<Postulaciones />} />
+            <Route path="tutor/horas" element={<ControlHoras />} />
+            <Route path="tutor/evaluaciones" element={<Evaluaciones />} />
+
+            {/* Admin routes */}
             <Route path="usuarios" element={<Usuarios />} />
             <Route path="configuracion" element={<Configuracion />} />
+            <Route path="admin/roles" element={<Usuarios />} />
+            <Route path="admin/periodos" element={<Configuracion />} />
+            <Route path="admin/requisitos" element={<Documentos />} />
+            <Route path="admin/auditoria" element={<Seguimiento />} />
+            <Route path="admin/seguridad" element={<Usuarios />} />
+            <Route path="admin/estado-sistema" element={<Configuracion />} />
+            <Route path="admin/incidencias" element={<Soporte />} />
 
-            {/* Student-only routes */}
+            {/* Student routes */}
             <Route path="mi-postulacion" element={<MiPostulacion />} />
-            <Route path="mi-postulacion/nueva" element={<NuevaPostulacion rol={rol} />} />
+            <Route path="mi-postulacion/nueva" element={<NuevaPostulacion rol="estudiante" />} />
             <Route path="mis-documentos" element={<MisDocumentos />} />
             <Route path="mis-horas" element={<MisHoras />} />
             <Route path="mi-evaluacion" element={<MiEvaluacion />} />
-            <Route path="perfil" element={<Perfil />} />
-            <Route path="soporte" element={<Soporte />} />
           </Route>
 
-          <Route path="*" element={<Navigate to={authenticated ? '/dashboard' : '/login'} replace />} />
+          <Route path="*" element={<Navigate to={authenticated ? initialDashboardTarget : '/login'} replace />} />
         </Routes>
       </BrowserRouter>
     </div>

@@ -3,13 +3,15 @@ import {
   LayoutDashboard, Inbox, FileText, Building2, ClipboardList,
   FolderOpen, Clock, Star, BarChart2, Navigation, Bell,
   Users, Settings, ChevronLeft, ChevronRight, HelpCircle,
-  Home, UserCircle, MessageCircle
+  Home, UserCircle, MessageCircle, Shield, Key, Calendar,
+  FileCheck, Activity, AlertOctagon, CheckSquare
 } from 'lucide-react';
+import type { RolBackend } from '../types/api';
 
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
-  rol: 'coordinador' | 'estudiante';
+  rol: RolBackend;
 }
 
 const coordinadorGroups = [
@@ -74,6 +76,67 @@ const estudianteGroups = [
   },
 ];
 
+const tutorGroups = [
+  {
+    label: 'GESTIÓN DE PRÁCTICAS',
+    items: [
+      { to: '/dashboard', icon: Home, label: 'Inicio' },
+      { to: '/tutor/estudiantes', icon: Users, label: 'Estudiantes asignados' },
+      { to: '/tutor/horas', icon: Clock, label: 'Horas por validar' },
+      { to: '/tutor/evaluaciones', icon: CheckSquare, label: 'Evaluaciones' },
+    ],
+  },
+  {
+    label: 'COMUNICACIÓN',
+    items: [
+      { to: '/notificaciones', icon: Bell, label: 'Notificaciones' },
+      { to: '/soporte', icon: MessageCircle, label: 'Ayuda y soporte' },
+    ],
+  },
+  {
+    label: 'CUENTA',
+    items: [
+      { to: '/perfil', icon: UserCircle, label: 'Mi perfil' },
+    ],
+  },
+];
+
+const adminGroups = [
+  {
+    label: 'ADMINISTRACIÓN',
+    items: [
+      { to: '/dashboard', icon: Home, label: 'Inicio' },
+      { to: '/usuarios', icon: Users, label: 'Usuarios' },
+      { to: '/admin/roles', icon: Shield, label: 'Roles y permisos' },
+      { to: '/admin/periodos', icon: Calendar, label: 'Periodos académicos' },
+      { to: '/admin/requisitos', icon: FileCheck, label: 'Requisitos documentarios' },
+      { to: '/configuracion', icon: Settings, label: 'Configuración general' },
+    ],
+  },
+  {
+    label: 'CONTROL DEL SISTEMA',
+    items: [
+      { to: '/admin/auditoria', icon: Key, label: 'Auditoría' },
+      { to: '/admin/seguridad', icon: Shield, label: 'Seguridad' },
+      { to: '/admin/estado-sistema', icon: Activity, label: 'Estado del sistema' },
+      { to: '/notificaciones', icon: Bell, label: 'Notificaciones' },
+    ],
+  },
+  {
+    label: 'SOPORTE',
+    items: [
+      { to: '/admin/incidencias', icon: AlertOctagon, label: 'Incidencias' },
+      { to: '/soporte', icon: MessageCircle, label: 'Ayuda y soporte' },
+    ],
+  },
+  {
+    label: 'CUENTA',
+    items: [
+      { to: '/perfil', icon: UserCircle, label: 'Mi perfil' },
+    ],
+  },
+];
+
 function SMCPPLogo() {
   return (
     <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -89,7 +152,20 @@ function SMCPPLogo() {
 
 export function Sidebar({ collapsed, onToggle, rol }: SidebarProps) {
   const location = useLocation();
-  const groups = rol === 'coordinador' ? coordinadorGroups : estudianteGroups;
+
+  let groups = estudianteGroups;
+  let roleLabel = '🎓 Estudiante';
+
+  if (rol === 'ADMINISTRADOR') {
+    groups = adminGroups;
+    roleLabel = '🛡️ Administrador General';
+  } else if (rol === 'COORDINADOR') {
+    groups = coordinadorGroups;
+    roleLabel = '👤 Coordinador de prácticas';
+  } else if (rol === 'TUTOR') {
+    groups = tutorGroups;
+    roleLabel = '👔 Tutor Empresarial';
+  }
 
   return (
     <aside
@@ -108,27 +184,13 @@ export function Sidebar({ collapsed, onToggle, rol }: SidebarProps) {
       </div>
 
       {/* Role badge */}
-      {!collapsed && (() => {
-        const storedUserRaw = localStorage.getItem('smcpp_user');
-        let roleLabel = rol === 'coordinador' ? '👤 Coordinador de prácticas' : '🎓 Estudiante';
-        if (storedUserRaw) {
-          try {
-            const u = JSON.parse(storedUserRaw);
-            if (u.rol === 'ADMINISTRADOR') roleLabel = '🛡️ Administrador General';
-            else if (u.rol === 'COORDINADOR') roleLabel = '👤 Coordinador de prácticas';
-            else if (u.rol === 'TUTOR') roleLabel = '👔 Tutor Empresarial';
-            else if (u.rol === 'ESTUDIANTE') roleLabel = '🎓 Estudiante';
-          } catch {}
-        }
-        return (
-          <div className="mx-3 mt-3 px-3 py-1.5 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
-            <div className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.50)' }}>
-              {roleLabel}
-            </div>
+      {!collapsed && (
+        <div className="mx-3 mt-3 px-3 py-1.5 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+          <div className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.50)' }}>
+            {roleLabel}
           </div>
-        );
-      })()}
-
+        </div>
+      )}
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3 px-2">
